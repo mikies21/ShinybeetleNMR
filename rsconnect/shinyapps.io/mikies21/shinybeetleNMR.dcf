@@ -5,10 +5,10 @@ account: mikies21
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4164160
-bundleId: 4822970
+bundleId: 4825969
 url: https://mikies21.shinyapps.io/shinybeetlenmr/
-when: 1626366246.13359
-lastSyncTime: 1626366246.13359
+when: 1626437707.13486
+lastSyncTime: 1626437707.13486
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: example_data/Galaxy4-[NMR_spectra_JAKi].csv|example_data/metabolite_list.csv|example_data/NEUTROPHIL_EXTRACTS_PATTERN_2020.csv
+ignoredFiles: .RData|figure/pressure-1.png|frontpage.html|frontpage.md|README.md

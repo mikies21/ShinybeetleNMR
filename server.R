@@ -30,7 +30,7 @@ generateReport <- function() {
 shinyServer(function(input, output) {
   
   
-  output$report <- renderText({ HTML(generateReport()) })
+  output$report <- renderUI({ HTML(markdown::markdownToHTML('frontpage.Rmd')) })
 
   # upload NMR data ---------------------------------------------------------
 

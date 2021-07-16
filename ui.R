@@ -18,6 +18,7 @@ library(tidyverse)
 library(shinyWidgets)
 library(shinydashboardPlus)
 library(mixOmics)
+library(markdown)
 
 # load functions ----------------------------------------------------------
 
@@ -64,7 +65,7 @@ shinyUI(
                                                                 menuSubItem('plots', tabName = 'PLSplots'),
                                                                 menuSubItem('test and train', tabName = 'PLS_ML')))),
                 body = dashboardBody(tabItems(tabItem(tabName = 'introduction',
-                                                      htmlOutput("report")),
+                                                      includeMarkdown("frontpage.Rmd")),
                                               tabItem(tabName = 'dashboard',
                                                       fluidRow(infoBoxOutput("textUpload", width = 6),
                                                                infoBoxOutput('ns_info', width = 6)),
