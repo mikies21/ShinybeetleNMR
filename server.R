@@ -185,7 +185,7 @@ shinyServer(function(input, output) {
     #nlevs <- nlevels(as.factor(data_ns()[,input$univ_group]))
     #levs <- levels(as.factor(data_ns()[,input$univ_group]))
     univ_info <- h5(HTML(paste0('grouping selected has ', grouping_factor()$nlevs , ' factors: ', paste(grouping_factor()$levs, collapse = ', '))))
-    infoBox(title = 'factors', value = univ_info, icon = icon('cubes'), color = 'red')
+    infoBox(title = 'factors', value = univ_info, icon = icon('cubes'), color = 'red', fill = T)
   })
   
   
@@ -230,7 +230,7 @@ shinyServer(function(input, output) {
   })
   
   output$univ_type <- renderInfoBox({
-    infoBox(title = 'test', value = univariate_test()$test,icon = icon('cubes'))
+    infoBox(title = 'test', value = univariate_test()$test,icon = icon('cubes'), fill = T, color = 'blue')
   })
 
   output$univ_table <- DT::renderDataTable({
