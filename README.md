@@ -1,15 +1,6 @@
----
-title: "ShinybeetlesNMR"
-author: "Michele Fresenda"
-date: "15/07/2021"
-output: 
-  html_document:
-    theme: Darkly
-    includes:
-      after_body: footer.html
----
+
 <center>
-# ShinybeetlesNMR
+# ShinybeetlesNMR #
 </center>
 Hi, my name is Michele Fresneda, I am a University of Liverpool PhD student working in NMR metabolomics. Long story short I have created this shiny application to streamline and have consistent reports for my data analysis.
 
