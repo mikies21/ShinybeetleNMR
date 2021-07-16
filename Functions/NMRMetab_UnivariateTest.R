@@ -43,11 +43,13 @@ NMRMetab_UnivarTest<-function(data,paired=F,normality=T,equal.variance=F){
         if(paired==F){
           a<-t.test(g1,g2,var.equal=F,paired=F,na.action=na.rm)
           if(i==1){
+            test <- "Doing a two-sided independent samples Welch Test"
           print("Doing a two-sided independent samples Welch Test")
           }
         }else{
           a<-t.test(g1,g2,var.equal=F,paired=T,na.action=na.rm)
           if(i==1){
+            test <- "Doing a two-sided paired Welch Test"
           print("Doing a two-sided paired Welch Test")
           }
         }
@@ -55,11 +57,13 @@ NMRMetab_UnivarTest<-function(data,paired=F,normality=T,equal.variance=F){
         if(paired==F){
           a<-t.test(g1,g2,var.equal=T,paired=F)
           if(i==1){
+            test <- "Doing a two-sided independent samples Student's t-test"
           print("Doing a two-sided independent samples Student's t-test")
           }
         }else{
           a<-t.test(g1,g2,var.equal=T,paired=T)
           if(i==1){
+            test <- "Doing a two-sided paired Student's t-test"
           print("Doing a two-sided paired Student's t-test")
           }
         }
@@ -70,20 +74,24 @@ NMRMetab_UnivarTest<-function(data,paired=F,normality=T,equal.variance=F){
           a<-ks.test(g1,g2)
           #aa<-t.test(g1,g2,var.equal = F,paired=F)
           if(i==1){
+            test <- "Doing a Kolmogorov-Smirnov Test"
           print("Doing a Kolmogorov-Smirnov Test")
           }
         }else{
           a<-wilcox.test(g1,g2,paired=T,conf.int = T)
           if(i==1){
+            test <- "Doing a Wilcoxon's matched pairs test"
           print("Doing a Wilcoxon's matched pairs test")
           }
         }
       }else{
         if(paired==F){
          a<-wilcox.test(g1,g2,var.equal=T,paired=F,conf.int = T)
+         test <- "Doing a two-sided Mann-Whitney U-test"
          print("Doing a two-sided Mann-Whitney U-test")
         }else{
           a<-wilcox.test(g1,g2,paired=T,conf.int = T)
+          test <- "Doing a Wilcoxon's matched pairs test test"
           print("Doing a Wilcoxon's matched pairs test test")
         }
       }
@@ -107,7 +115,7 @@ NMRMetab_UnivarTest<-function(data,paired=F,normality=T,equal.variance=F){
    #pathOut<-makeTSFolder("UnivariateTests")
    colnames(out)<-c("Metabolite/Bucket","95% Conf. Int. Mean.","Unadjusted pvals","BH pvals","Bonf pvals")
    #write.csv(out,paste(pathOut,"/UnivariateTestOutputs.csv",sep=""),row.names = F)
-   return(out)
+   return(list('out' = out, 'test' = test))
  }
 
 

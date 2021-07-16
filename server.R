@@ -167,12 +167,44 @@ shinyServer(function(input, output) {
     return(list('nlevs' = nlevs, 'levs' = levs))
   })
   
+  pair <- reactive({
+    if('paired' %in% input$univ_test) { 
+      pair = T
+      }  else {
+        pair = F
+      }
+    
+    pair
+    })
+  normal <- reactive({
+    if('normal' %in% input$univ_test) { 
+      normal = T
+    }
+    else {
+      normal = F
+    }
+    normal
+  })
+  
+  variance <- reactive({
+    if('variance' %in% input$univ_test) { 
+      variance = T
+    }
+    else {
+      variance = F
+    }
+    variance
+  })
+  
+  
+  
   output$textUniv <- renderInfoBox({
     #nlevs <- nlevels(as.factor(data_ns()[,input$univ_group]))
     #levs <- levels(as.factor(data_ns()[,input$univ_group]))
     univ_info <- h5(HTML(paste0('grouping selected has ', grouping_factor()$nlevs , ' factors: ', paste(grouping_factor()$levs, collapse = ', '))))
     infoBox(title = 'factors', value = univ_info, icon = icon('cubes'), color = 'red')
   })
+  
   
   output$univariateUI <- renderUI({
     
@@ -195,37 +227,31 @@ shinyServer(function(input, output) {
     }
   })
   
-
-  output$univ_table <- DT::renderDataTable({
+  univariate_test <- reactive({
     ngroup <- match(input$univ_group, colnames(data_ns()))
     df <- as.data.frame(data_normalised())
     df <- df[,c(ngroup, c(input$metadata_index+1):ncol(data_ns()))] %>% rownames_to_column('ID')
     if (grouping_factor()$nlevs < 3) {
-      if('paired' %in% input$univ_test) { 
-        pair = T
-      }
-      else {
-        pair = F
-      }
-      if('normal' %in% input$univ_test) { 
-        normal = T
-      }
-      else {
-        normal = F
-      }
-      if('variance' %in% input$univ_test) { 
-        variance = T
-      }
-      else {
-        variance = F
-      }
-      table1 <- tibble(NMRMetab_UnivarTest(data = as.data.frame(df), paired = pair, normality = normal, equal.variance = variance))
-      return(table1)
+      table1 <- NMRMetab_UnivarTest(data = as.data.frame(df), paired = pair(), normality = normal(), equal.variance = variance())
+      out <- tibble(table1$out)
+      test <- table1$test
+      return(list('test' = test, 'out' = out))
     }
     else {
       table1 <- NMRMetab_anova(data = as.data.frame(df), adjMethod = input$univ_test)$anova_pvals %>% rownames_to_column('metabolite')
+      out <- table1
+      test <- 'ANOVA TEST PERFOMED'
+      return(list('test' = test, 'out' = out))
       return(table1)
     }
+  })
+  
+  output$univ_type <- renderInfoBox({
+    infoBox(title = 'test', value = univariate_test()$test,icon = icon('cubes'))
+  })
+
+  output$univ_table <- DT::renderDataTable({
+    univariate_test()$out
   })
   
   
@@ -244,6 +270,15 @@ shinyServer(function(input, output) {
     PCA <- prcomp(as.data.frame(data_ns())[c(input$metadata_index+1):ncol(data_ns())], center = F, scale. = F)
    
   })
+  
+  output$PCA_ellipsesUI <- renderUI({
+    if (input$PCAcorr == 'corrplot') {
+      return(NULL)
+    }
+    else {
+      checkboxInput('PCA_ellipses', label = 'add ellipses',value = F)
+    }
+  })
 
   PCA_scores = reactive({
     pcs <- c(input$pcx, input$pcy)
@@ -258,9 +293,13 @@ shinyServer(function(input, output) {
           ggplot2::geom_point(size = 3)+
           ggplot2::theme_bw(base_size = 16) +
           ggplot2::labs(x = paste0('PC', pcs[1], ' (', prop_var[1], '%)'), y = paste0('PC', pcs[2], ' (', prop_var[2], '%)'))
+        if (input$PCA_ellipses) {
+          plot1 <- plot1 +
+            ggplot2::stat_ellipse(aes_string(colour = input$PCA_group, fill = input$PCA_group),geom = "polygon", alpha = 0.1)
+        }
       }
       else {
-        plot1 <- ggplot2::ggplot(scores, aes_string(x = paste0('PC', pcs[1]), colour = input$PCA_group, fill = input$PCA_group)) +
+        plot1 <- ggplot2::ggplot(scores, aes_string(x = paste0('PC', pcs[1]), colour = input$PCA_group)) +
           ggplot2::geom_density(alpha = 0.2) +
           ggplot2::theme_bw(base_size = 16) +
           ggplot2::labs(x = paste0('PC', pcs[1], ' (', prop_var[1], '%)'))
@@ -322,10 +361,10 @@ shinyServer(function(input, output) {
   })
 
   output$PCA_info <- DT::renderDataTable({
-    if(nrow(brushed_PCA()) == 0){
+    if(nrow(brushed_PCA()) == 0 || input$PCAcorr == 'corrplot'){
       return(NULL)
     }
-    brushed_PCA()[,3:ncol(brushed_PCA())]
+    brushed_PCA()[,c(ncol(brushed_PCA())-input$metadata_index+1):ncol(brushed_PCA())]
     # selected_rows
   })
 
@@ -341,7 +380,7 @@ shinyServer(function(input, output) {
 
 
   output$boxplots_loadings <- renderPlot({
-    if(nrow(brushed_loadings()) == 0){
+    if(nrow(brushed_loadings()) == 0 || input$PCAcorr == 'corrplot'){
       return(NULL)
     }
     selected_rows <- c(metadata(), brushed_loadings()$bin)
