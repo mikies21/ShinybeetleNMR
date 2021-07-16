@@ -5,10 +5,10 @@ account: mikies21
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4164160
-bundleId: 4825969
+bundleId: 4827293
 url: https://mikies21.shinyapps.io/shinybeetlenmr/
-when: 1626437707.13486
-lastSyncTime: 1626437707.13486
+when: 1626463423.80682
+lastSyncTime: 1626463423.80682
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData|figure/pressure-1.png|frontpage.html|frontpage.md|README.md
+ignoredFiles: .RData|figure/pressure-1.png|frontpage.html|README.md
