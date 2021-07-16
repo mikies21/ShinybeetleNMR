@@ -64,12 +64,12 @@ shinyServer(function(input, output) {
       text_infodata <- h5(HTML(paste0('data uploaded has ', nrow(dataUpload()), ' samplse and ', ncol(dataUpload()), ' bins', br(),
                                  'The first ', input$metadata_index, ' contain the metadata group information')))
     }
-    infoBox(title = 'data', value = text_infodata, color = 'blue', icon = icon('list'), fill = T, width = 5)
+    infoBox(title = 'data', value = text_infodata, color = 'red', icon = icon('list'), fill = T, width = 5)
   })
   
   output$ns_info <- renderInfoBox({
     ns_info <- h5(HTML(paste0('data has been nomalised by ', input$normalisation, ' and then scaled with ', input$scaling)))
-    infoBox(title = 'NS', value = ns_info, icon = icon('cubes'), color = 'red')
+    infoBox(title = 'NS', value = ns_info, icon = icon('cubes'), color = 'blue', fill = T)
   })
     #import_file_server(id = "new_upload", btn_show_data = F, trigger_return = "change", return_class = "data.frame")
   #varUpload <- update_variables_server("var_update", data = dataUpload)
@@ -113,7 +113,7 @@ shinyServer(function(input, output) {
   output$df1 <- DT::renderDataTable({
     data_ns()
     #filtered_data$filtered()
-  })
+  }, options = list(pageLength = 5, info = FALSE))
 
 
 
