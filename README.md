@@ -9,9 +9,9 @@ Hi, my name is Michele Fresneda, I am a University of Liverpool PhD student work
 ### Upload Data
 
 the NMR data to upload should be a .csv file and have the grouping information (gender, age, condition) starting at column 1. all the other subsequent columns would be the bins (as binned from [galaxy.ac.uk](http://galaxy.liv.ac.uk/) using your own pattern file)
-<center>
+
 ![example data](figure/example_data.PNG)
-</center>
+
 
 After uploading the data (no files larger than 300MB will be allowed) you are able to interactively filter your samples, normalise and scale your data. the resulting data can be then saved and stored for later use. in the same page you can visualize your data-frame and see changes made by the normalisation and scaling steps to your data. once you are happy with the resulting data frame you can continue to the next part of the analysis
 
