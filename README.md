@@ -1,7 +1,7 @@
 
-<center>
 # ShinybeetlesNMR #
-</center>
+
+
 Hi, my name is Michele Fresneda, I am a University of Liverpool PhD student working in NMR metabolomics. Long story short I have created this shiny application to streamline and have consistent reports for my data analysis.
 
 ## How to use the app
