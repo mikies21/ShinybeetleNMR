@@ -9,28 +9,11 @@
 
 library(shiny)
 
-options(shiny.maxRequestSize = 300 * 1024^2, repos = BiocManager::repositories())
-
-
-generateReport <- function() {
-  out.markdown <- ''
-  withProgress(message = 'Generating Report',
-               value = 0, {
-                 out.markdown <- rmarkdown::render(
-                   input = "frontpage.Rmd",
-                   output_format = "html_document")
-                 
-                 setProgress(1)
-               })
-  
-  read_file(out.markdown)
-}
+options(shiny.maxRequestSize = 300 * 1024^2, repos = BiocManager::repositories(version = 3.13))
 
 
 shinyServer(function(input, output) {
   
-  
-  output$report <- renderUI({ HTML(markdown::markdownToHTML('frontpage.Rmd')) })
 
   # upload NMR data ---------------------------------------------------------
 
@@ -90,7 +73,7 @@ shinyServer(function(input, output) {
     return(df)
   })
 
-# filte dataframe -------------------------------------------------------------------------------------------------
+# filter dataframe -------------------------------------------------------------------------------------------------
 
 
   filtered_data <- filter_data_server(id = "filtering_data", data = dataUpload1, vars = metadata1)
