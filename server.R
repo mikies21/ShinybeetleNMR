@@ -183,11 +183,7 @@ shinyServer(function(input, output) {
         choices = list("paired groups" = 'paired', 
                        "normal" = 'normal',
                        "equal variance" = 'variance'),
-        checkIcon = list(
-          yes = tags$i(class = "fa fa-check-square", 
-                       style = "color: steelblue"),
-          no = tags$i(class = "fa fa-square-o", 
-                      style = "color: steelblue")),
+        status = 'danger',
         direction = 'vertical'
       )
     }
@@ -205,7 +201,25 @@ shinyServer(function(input, output) {
     df <- as.data.frame(data_normalised())
     df <- df[,c(ngroup, c(input$metadata_index+1):ncol(data_ns()))] %>% rownames_to_column('ID')
     if (grouping_factor()$nlevs < 3) {
-      table1 <- tibble(NMRMetab_UnivarTest(data = as.data.frame(df), paired = F))
+      if('paired' %in% input$univ_test) { 
+        pair = T
+      }
+      else {
+        pair = F
+      }
+      if('normal' %in% input$univ_test) { 
+        normal = T
+      }
+      else {
+        normal = F
+      }
+      if('variance' %in% input$univ_test) { 
+        variance = T
+      }
+      else {
+        variance = F
+      }
+      table1 <- tibble(NMRMetab_UnivarTest(data = as.data.frame(df), paired = pair, normality = normal, equal.variance = variance))
       return(table1)
     }
     else {
