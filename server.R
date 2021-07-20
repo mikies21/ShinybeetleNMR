@@ -11,7 +11,6 @@ library(shiny)
 
 options(shiny.maxRequestSize = 300 * 1024^2, repos = BiocManager::repositories(version = 3.13))
 
-
 shinyServer(function(input, output) {
   
 
@@ -47,12 +46,12 @@ shinyServer(function(input, output) {
       text_infodata <- h5(HTML(paste0('data uploaded has ', nrow(dataUpload()), ' samplse and ', ncol(dataUpload()), ' bins', br(),
                                  'The first ', input$metadata_index, ' contain the metadata group information')))
     }
-    infoBox(title = 'data', value = text_infodata, color = 'red', icon = icon('list'), fill = T, width = 5)
+    infoBox(title = h4(HTML('<b>data<b>')), value = text_infodata, color = 'red', icon = icon('list'), fill = T, width = 5)
   })
   
   output$ns_info <- renderInfoBox({
     ns_info <- h5(HTML(paste0('data has been nomalised by ', input$normalisation, ' and then scaled with ', input$scaling)))
-    infoBox(title = 'NS', value = ns_info, icon = icon('cubes'), color = 'blue', fill = T)
+    infoBox(title = h4(HTML('<b>Normalisation and Scaling<b>')), value = ns_info, icon = icon('cubes'), color = 'blue', fill = T)
   })
     #import_file_server(id = "new_upload", btn_show_data = F, trigger_return = "change", return_class = "data.frame")
   #varUpload <- update_variables_server("var_update", data = dataUpload)
@@ -192,14 +191,14 @@ shinyServer(function(input, output) {
   output$univariateUI <- renderUI({
     
     if (grouping_factor()$nlevs < 3) {
-      checkboxGroupButtons(
+      awesomeCheckboxGroup(
         inputId = "univ_test",
         label = "univariate analysis options",
         choices = list("paired groups" = 'paired', 
                        "normal" = 'normal',
                        "equal variance" = 'variance'),
         status = 'danger',
-        direction = 'vertical'
+        inline = F
       )
     }
     else {
@@ -221,7 +220,7 @@ shinyServer(function(input, output) {
       return(list('test' = test, 'out' = out))
     }
     else {
-      table1 <- NMRMetab_anova(data = as.data.frame(df), adjMethod = input$univ_test)$anova_pvals %>% rownames_to_column('metabolite')
+      table1 <- NMRMetab_anova(data = as.data.frame(df), adjMethod = input$univ_test)$anova_pvals %>% rownames_to_column('Metabolite/Bucket')
       out <- table1
       test <- 'ANOVA TEST PERFOMED'
       return(list('test' = test, 'out' = out))
@@ -235,6 +234,29 @@ shinyServer(function(input, output) {
 
   output$univ_table <- DT::renderDataTable({
     univariate_test()$out
+  }, selection = 'multiple')
+  
+  output$univs_rows = renderPrint(input$univ_table_rows_selected)
+  
+  univ_selection <- reactive({
+    selected_metabs <- univariate_test()$out[input$univ_table_rows_selected,] %>% dplyr::pull('Metabolite/Bucket')
+    data_normalised() %>% dplyr::select(all_of(c(metadata(),selected_metabs)))
+  })
+  
+  output$univ_boxplot <- renderPlot({
+    if (is.null(input$univ_table_rows_selected)) {
+      return(NULL)
+    }
+    else {
+      boxplot1 <- univ_selection() %>% 
+        pivot_longer(cols = c(input$metadata_index+1):ncol(univ_selection()), names_to = "Metabolite", values_to = "value") %>%
+        ggplot(aes(x = .data[[input$univ_group]], y = value, fill = .data[[input$univ_group]])) +
+        geom_boxplot(outlier.shape = NA) +
+        geom_jitter(width = 0.1) +
+        facet_wrap(~Metabolite, scales = "free_y") +
+        theme_bw(base_size = 13)
+      return(boxplot1)
+    }
   })
   
   

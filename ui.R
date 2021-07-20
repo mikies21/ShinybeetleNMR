@@ -32,7 +32,7 @@ source('Functions/NMRMetab_PCA.R')
 source('Functions/NMRmetab_plot.R')
 #source('Functions/NMRMetab_readBruker.R')
 source('Functions/NMRMetab_UnivariateTest.R')
-
+tags$style("@import url(https://use.fontawesome.com/releases/v5.15/css/all.css);")
 
 
 
@@ -44,7 +44,7 @@ shinyUI(
                 header = dashboardHeader(title = "ShinybeetlesNMR"), 
                 sidebar = dashboardSidebar(collapsed = F,
                                            width = 350,minified = F,
-                                           sidebarMenu(id = 'tabs', 
+                                           sidebarMenu(id = 'firsttabs', 
                                                        menuItem(text = 'Introduction', tabName = "introduction", icon = icon("bullhorn")),
                                                        menuItem(text = 'Load Data', tabName = "dashboard", icon = icon("table"))),
                                            fileInput(inputId = 'fileUpload' ,label = 'upload NMR data', multiple = F, accept = '.csv',),
@@ -58,19 +58,19 @@ shinyUI(
                                                         shape = "curve"),
                                            pickerInput("normalisation", label = "data normalisation", choices = c("None", "PQN", "TotArea")),
                                            pickerInput("scaling", label = "data scaling", choices = c("None", "Pareto", "Range")),
-                                           sidebarMenu(id = 'tabs', 
-                                                       menuItem(text = 'Univariate', tabName = 'univariate', icon = icon("dice-one")),
+                                           sidebarMenu(id = 'secondtabs', 
+                                                       menuItem(text = 'Univariate', tabName = 'univariate', icon = icon("arrows-alt-v", lib = "glyphicon")),
                                                        menuItem(text = 'PCA', tabName = 'PCA', icon = icon('dice')),
                                                        menuItem(text = 'PLSDA',tabName = 'PLSDA', icon = icon('angellist'),
                                                                 menuSubItem('plots', tabName = 'PLSplots'),
-                                                                menuSubItem('test and train', tabName = 'PLS_ML')))),
+                                                                menuSubItem('test and train', tabName = 'PLS_ML',icon = icon("arrows-alt-v"))))),
                 body = dashboardBody(tabItems(tabItem(tabName = 'introduction',
                                                       includeMarkdown("frontpage.Rmd")),
                                               tabItem(tabName = 'dashboard',
                                                       fluidRow(infoBoxOutput("textUpload", width = 4),
                                                                infoBoxOutput('ns_info', width = 4)),
                                                       sidebarLayout(sidebarPanel(filter_data_ui("filtering_data"),width = 4, 
-                                                                                 tags$style(".well {background-color: #e68383;}")),
+                                                                                 tags$style(".well {background-color: #afbab1;}")),
                                                                     mainPanel(box(title = 'dataframe',
                                                                                   style = "overflow-x: scroll;",
                                                                                   collapsible = T,
@@ -85,14 +85,17 @@ shinyUI(
                                                                                            column(6, uiOutput('spectra_groupUI'))),
                                                                                   plotOutput('spectra_plot_scaled'))))),
                                               tabItem(tabName = 'univariate',
-                                                      fluidRow(column(3,
-                                                                      uiOutput('univ_groupUI'),
-                                                                      infoBoxOutput('textUniv',12),
-                                                                      infoBoxOutput('univ_type', 12),
+                                                      fluidRow(column(3, uiOutput('univ_groupUI')),
+                                                               column(4, infoBoxOutput('textUniv',12)),
+                                                               column(5, infoBoxOutput('univ_type',12))),
+                                                      fluidRow(column(3, 
+                                                                      tags$style("#univ_test {font-size:15px;height:15px;}"),
                                                                       uiOutput('univariateUI')),
-                                                               box(style = "overflow-x: scroll;",
-                                                                   width = 9,
-                                                                   DT::dataTableOutput('univ_table')))),
+                                                               column(9, box(style = "overflow-x: scroll;",
+                                                                             width = 12,
+                                                                             DT::dataTableOutput('univ_table')))),
+                                                      fluidRow(column(3),
+                                                               column(6, plotOutput('univ_boxplot')))),
                                               tabItem(tabName = 'PCA',
                                                       fluidRow(column(2,
                                                                       uiOutput('PCA_groupUI'),
@@ -141,3 +144,4 @@ shinyUI(
                                                           width = 5,
                                                           plotOutput('CV_plot'))))))
 )
+
