@@ -65,7 +65,14 @@ shinyUI(
                                                                 menuSubItem('plots', tabName = 'PLSplots'),
                                                                 menuSubItem('test and train', tabName = 'PLS_ML',icon = icon("arrows-alt-v"))))),
                 body = dashboardBody(tabItems(tabItem(tabName = 'introduction',
-                                                      includeMarkdown("frontpage.Rmd")),
+                                                      fluidRow(column(12,
+                                                                      #tags$div(class = 'header',
+                                                                      #         h1('ShinybeetlesNMR', align = "center", style = "color:#101a3b")), br(),
+                                                                      #h4('Hi, my name is Michele Fresneda, I am a University of Liverpool PhD student working in NMR metabolomics. 
+                                                                      #   Long story short I have created this shiny application to streamline and have consistent reports for my data
+                                                                      #   analysis.'),
+                                                                      #h2('How to use the app')))),
+                                                      includeMarkdown("frontpage.Rmd")))),
                                               tabItem(tabName = 'dashboard',
                                                       fluidRow(infoBoxOutput("textUpload", width = 4),
                                                                infoBoxOutput('ns_info', width = 4)),
@@ -136,6 +143,7 @@ shinyUI(
                                               tabItem(tabName = 'PLS_ML',
                                                       box(title = 'PLS settings',
                                                           width = 2, 
+                                                          actionBttn('PLS_run', label = 'run PLS', style = 'float', color = 'warning', size = 'sm'),
                                                           uiOutput('PLS_group_trainUI'),
                                                           sliderInput('testtrainsplit', label = 'spit test and train', min = 0, max = 100, value = 70, step = 1),
                                                           numericInput('ncomp', label = 'number of components', value = 3, min = 0, max = 20, step = 1),

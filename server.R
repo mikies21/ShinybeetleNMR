@@ -449,7 +449,7 @@ shinyServer(function(input, output) {
 # PLS-DA test train -------------------------------------------------------
 
   
-  testtrain <- reactive({
+  testtrain <- eventReactive(input$PLS_run, {
     splits <- rsample::initial_split(data = data_normalised(), strata = input$PLS_group_train, prop = input$testtrainsplit/100)
     train <- rsample::training(splits) %>%
       NMRMetab_norm_scale(index_col = input$metadata_index + 1, normalisation = input$normalisation)
@@ -458,7 +458,7 @@ shinyServer(function(input, output) {
     return(list('train' = train, 'test' = test))
     })
   
-  PLS_train <- reactive({
+  PLS_train <- eventReactive(input$PLS_run, {
     plsda_model <- mixOmics::plsda(
       X = testtrain()$train[, c(input$metadata_index+1):ncol(testtrain()$train)],
       Y = factor(testtrain()$train[, input$PLS_group_train]),
@@ -473,7 +473,7 @@ shinyServer(function(input, output) {
   })
   
   output$CV_plot <- renderPlot({
-    plot(CV())
+      plot(CV())
   })
   
   PLS_results <- eventReactive(input$do_PLS, {
