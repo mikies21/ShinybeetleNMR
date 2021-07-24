@@ -19,7 +19,7 @@ library(shinyWidgets)
 library(shinydashboardPlus)
 library(mixOmics)
 library(markdown)
-
+library(kableExtra)
 # load functions ----------------------------------------------------------
 
 source('Functions/NMRMetab_anova.R')
@@ -149,7 +149,23 @@ shinyUI(
                                                           numericInput('ncomp', label = 'number of components', value = 3, min = 0, max = 20, step = 1),
                                                           selectInput('CV_validation', label = 'type of CV', choices = c('loo', 'Mfold'), selected = 'loo', multiple = F)),
                                                       box(title = 'CV plot', 
-                                                          width = 5,
-                                                          plotOutput('CV_plot'))))))
+                                                          width = 6,
+                                                          plotOutput('CV_plot')),
+                                                      box(title = 'VIPs',
+                                                          width = 4,
+                                                          style = "overflow-x: scroll;",
+                                                          DT::dataTableOutput('PLS_vip')),
+                                                      box(title = 'Prediction',
+                                                          width = 4,
+                                                          style = "overflow-x: scroll;",
+                                                          DT::dataTableOutput('PLS_pred')),
+                                                      box(title = 'confusion matrix', 
+                                                          width = 2,
+                                                          status = 'info',
+                                                          tableOutput('PLS_conf_mat')),
+                                                      box(title = 'confusion matrix', 
+                                                          width = 4,
+                                                          status = 'warning',
+                                                          DT::dataTableOutput('PLS_prediction_metrics'))))))
 )
 

@@ -95,7 +95,7 @@ shinyServer(function(input, output) {
   output$df1 <- DT::renderDataTable({
     data_ns()
     #filtered_data$filtered()
-  }, options = list(pageLength = 5, info = FALSE))
+  }, options = list(pageLength = 5, info = FALSE),rownames = '')
 
 
 
@@ -234,7 +234,7 @@ shinyServer(function(input, output) {
 
   output$univ_table <- DT::renderDataTable({
     univariate_test()$out
-  }, selection = 'multiple')
+  }, selection = 'multiple',rownames = '')
   
   output$univs_rows = renderPrint(input$univ_table_rows_selected)
   
@@ -371,7 +371,7 @@ shinyServer(function(input, output) {
     }
     brushed_PCA()[,c(ncol(brushed_PCA())-input$metadata_index+1):ncol(brushed_PCA())]
     # selected_rows
-  })
+  },rownames = '')
 
   brushed_loadings <- reactive({
     brushedPoints(df = PCA_loading()$data, brush = input$PCA_loading_brush)
@@ -450,12 +450,19 @@ shinyServer(function(input, output) {
 
   
   testtrain <- eventReactive(input$PLS_run, {
-    splits <- rsample::initial_split(data = data_normalised(), strata = input$PLS_group_train, prop = input$testtrainsplit/100)
-    train <- rsample::training(splits) %>%
-      NMRMetab_norm_scale(index_col = input$metadata_index + 1, normalisation = input$normalisation)
-    test <- rsample::testing(splits) %>%
-      NMRMetab_norm_scale(index_col = input$metadata_index + 1, normalisation = input$normalisation)
-    return(list('train' = train, 'test' = test))
+    if (input$testtrainsplit == 100) {
+      train <- data_normalised()
+      test <- NULL
+      return(list('train' = train, 'test' = test))
+    }
+    else {
+      splits <- rsample::initial_split(data = data_normalised(), strata = input$PLS_group_train, prop = input$testtrainsplit/100)
+      train <- rsample::training(splits) %>%
+        NMRMetab_norm_scale(index_col = input$metadata_index + 1, normalisation = input$normalisation)
+      test <- rsample::testing(splits) %>%
+        NMRMetab_norm_scale(index_col = input$metadata_index + 1, normalisation = input$normalisation)
+      return(list('train' = train, 'test' = test))
+      }
     })
   
   PLS_train <- eventReactive(input$PLS_run, {
@@ -473,16 +480,81 @@ shinyServer(function(input, output) {
   })
   
   output$CV_plot <- renderPlot({
-      plot(CV())
+    cv_df <- CV()
+    cv_df[['error.rate']] %>%
+      lapply(function(x) { x %>% data.frame() %>% rownames_to_column('comp')})%>%
+      dplyr::bind_rows(.id = 'type') %>% mutate(comp = as.numeric(str_remove(comp, 'comp'))) %>% 
+      pivot_longer(cols = contains('.dist'), names_to = 'distance_type', values_to = 'value') %>% 
+      ggplot(aes(x = comp, y = value))+
+      geom_line(aes(colour = distance_type, linetype = type, group = interaction(distance_type, type)),size = 1.2, stat = 'identity')+
+      labs(x = 'component', y ='Classification Error Rate')+
+      scale_x_continuous(limits = c(1,input$ncomp), breaks = 1:input$ncomp)+
+      theme_bw()+
+      theme(legend.position="top")
+    #plot(CV())
   })
   
-  PLS_results <- eventReactive(input$do_PLS, {
-    NMRmetab_average_prediction_metrics(dat = data_ns(), groupID = input$PLS_grouping1, index_col = input$metadata_index[2] + 1, components_model = 3, iterations = 1, run_CV = F)
-  })
+  #PLS_results <- eventReactive(input$do_PLS, {
+   # NMRmetab_average_prediction_metrics(dat = data_ns(), groupID = input$PLS_grouping1, index_col = input$metadata_index[2] + 1, components_model = 3, iterations = 1, run_CV = F)
+  #})
 
-  output$metrics_table <- DT::renderDataTable({
-    PLS_results()$predictions
-  })
+  output$PLS_vip <- DT::renderDataTable({
+    mixOmics::vip(PLS_train()) %>%
+      as.data.frame() %>%
+      tibble::rownames_to_column('metabolite')
+  },selection = 'none', rownames = '', filter = 'none',
+  extensions = "FixedColumns",
+  options = list(
+    paging = TRUE, searching = TRUE, info = FALSE,
+    sort = TRUE, scrollX = TRUE, fixedColumns = list(leftColumns = 2)
+  ))
   
   #addd new things here
+  prediction <- reactive({
+    test_df <- testtrain()$test
+    prediction <- tibble::tibble("sampleID" = test_df[, 1],
+                                 "predictions" = factor(stats::predict(PLS_train(),
+                                                                       test_df[c(input$metadata_index+1):ncol(test_df)])$class$mahalanobis.dist[, input$ncomp]),### change number of components appropiately
+                                 "true_val" = factor(test_df[, input$PLS_group_train]))
+  })
+  
+  output$PLS_pred <- DT::renderDataTable({
+    prediction()
+  }, selection = 'multiple',rownames = '')
+  
+  confusion_mat <- reactive({
+    pred <- prediction() %>% 
+      yardstick::conf_mat(truth = "true_val", estimate = "predictions")
+  })
+  
+  output$PLS_conf_mat <- function() {
+    as.data.frame.matrix(confusion_mat()$table) %>% 
+      tibble::rownames_to_column('Pred') %>% 
+      knitr::kable() %>%
+      kableExtra::add_header_above(c(" " = 1, "Truth" = 2)) %>%
+      column_spec(1, bold = T, border_right = T) %>% 
+      kableExtra::kable_minimal()
+   # confusion_mat()$table %>% 
+  #    as.data.frame() %>% 
+  #    ggplot(aes(x=Truth, y=Prediction))+
+  #    geom_tile(aes(fill = Freq))+
+  #    scale_fill_gradient(low = "white", high = "steelblue")+
+  #    geom_text(aes(x = Truth, y = Prediction, label = Freq), size = 15)+
+  #    theme_bw()+
+  #    labs(title = 'Confusion Matix')+
+  #    theme(legend.position = "none")
+  }
+  
+  PLS_predictors <- reactive({
+    confusion_mat() %>%
+      summary() %>%
+      dplyr::filter(.metric %in% c("accuracy", "bal_accuracy", "precision", "recall", "f_meas")) %>%
+      dplyr::select(-.estimator)
+    
+  })
+  
+  output$PLS_prediction_metrics <- DT::renderDataTable({
+    PLS_predictors()
+  }, selection = 'multiple',rownames = '')
+  
 })
