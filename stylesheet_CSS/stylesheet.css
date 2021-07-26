@@ -1,0 +1,54 @@
+p {
+  border: 1px solid black;
+  padding: 1rem;
+}
+.introduction {
+  text-align: justify;
+  padding: 10px;
+  background-color: rgb(53, 194, 125);
+  font-family: 'Rubik', sans-serif;
+  font-weight: bolder;
+  margin-left: 20px;
+  margin-right: 20px;
+  border-radius: 10px;
+  border-style: double;
+}
+
+.title {
+  font-weight: bold;
+  text-align: center;
+  font-size: 30px;
+  color: rgb(221, 84, 39);
+  background-color: rgb(204, 219, 216);
+  border-radius: 50px
+}
+
+.example_data {
+  text-align: center;
+  object-fit: contain;
+}
+
+.collapsible {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: ;
+  border-radius: 50px;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+.active,
+.collapsible:hover {
+  background-color: #981010;
+  border-radius: 50px;
+}
+
+.content {
+  padding: 0 18px;
+  display: none;
+  overflow: hidden;
+  background-color: rgb(24, 171, 218);
+}
