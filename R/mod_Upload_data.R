@@ -14,9 +14,15 @@ mod_Upload_data_ui <- function(id){
   tagList(
         shiny::fileInput(inputId = ns("fileupload"), label = "upload csv file", multiple = F),
         shiny::sliderInput(inputId = ns("metadata_colnames"), label = 'metadata columns', min = 1,max = 10, value = 9, step = 1),
-        shiny::selectInput(inputId = ns("normalisation"), choices = c("None", "PQN", "Auto"), label = "Normalisation"),
-        shiny::selectInput(inputId = ns("scaling"), choices = c("None", "Pareto", "Auto"), label = "Scaling"),
-        datamods::filter_data_ui(id = ns("filter"), show_nrow = TRUE, max_height = NULL)
+        fluidRow(
+          column(width = 6,
+            shiny::selectInput(inputId = ns("normalisation"), choices = c("None", "PQN", "Auto"), label = "Normalisation"),
+            ),
+          column(width = 6,
+                 shiny::selectInput(inputId = ns("scaling"), choices = c("None", "Pareto", "Auto"), label = "Scaling")
+          )
+        )
+        #datamods::filter_data_ui(id = ns("filter"), show_nrow = TRUE, max_height = NULL)
       )
 }
 
@@ -35,8 +41,9 @@ mod_Upload_data_server <- function(id){
       req(file)
       #validate(need(ext == ".csv", "Please upload a csv file"))
       
-      x <- read.csv(file$datapath)
-      return(data_CRS)
+      read.csv(file$datapath)
+      #return(data_CRS)
+      #data_CRS
     })
     
     
@@ -46,17 +53,21 @@ mod_Upload_data_server <- function(id){
     })
     
     
-    res_filter <- datamods::filter_data_server(
-      "filter",
-      data = data_n,
-      vars = reactive(as.list(colnames(data_n()[1:input$metadata_colnames]))),
-      name = reactive("data_nmr"),
-      drop_ids = TRUE,
-      widget_char = c("select"),
-      widget_num = c("slider"),
-      widget_date = c("slider"),
-      label_na = "NA"
-    )
+    #res_filter <- datamods::filter_data_server(
+    #  id = "filter",
+    #  data = data_norm,
+    #  vars = reactive(as.list(colnames(data_norm()[2:input$metadata_colnames]))),
+    #  name = reactive("data_nmr"),
+    #  drop_ids = TRUE,
+    #  widget_char = c("select"),
+    #  widget_num = c("slider"),
+    #  widget_date = c("slider"),
+    #  label_na = "NA"
+    #)
+    
+    #data_n <- shiny::reactive({
+    #  res_filter$filtered()
+    #})
     
     data_ns <- reactive({
       NMRMetab_norm_scale(data_n(), index_col = input$metadata_colnames+1, normalisation = 'None', bin = NA, scaling = input$scaling, writeToFile = F)

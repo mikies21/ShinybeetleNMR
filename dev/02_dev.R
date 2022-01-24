@@ -24,11 +24,13 @@ usethis::use_package( "shinyWidgets" )
 usethis::use_package( "shinydashboardPlus" )
 usethis::use_package( "dplyr" )
 usethis::use_package( "datamods" )
+usethis::use_package( "magrittr" )
 
 ## Add modules ----
 ## Create a module infrastructure in R/
 golem::add_module( name = "Upload_data" ) # Name of the module
-golem::add_module( name = "name_of_module2" ) # Name of the module
+golem::add_module( name = "spectra_plot" ) # Name of the module
+golem::add_module( name = "Univariate_analysis" ) # Name of the module
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
