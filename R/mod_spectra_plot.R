@@ -12,7 +12,6 @@ mod_spectra_plot_ui <- function(id) {
   tagList(
     shinydashboard::box(
       width = 12,
-      shiny::uiOutput(outputId = ns("grouping_variable_spectra_UI")),
       shiny::radioButtons(inputId = ns("type_of_data"), label = "data to plot", choices = c("original", "normalised", "normalised and scaled")),
       shiny::plotOutput(outputId = ns("plotspectra"))
     ),
@@ -26,21 +25,17 @@ mod_spectra_plot_ui <- function(id) {
 #' spectra_plot Server Functions
 #'
 #' @noRd
-mod_spectra_plot_server <- function(id, data_NMR_original, data_NMR_n, data_NMR_ns, index_metadata) {
+mod_spectra_plot_server <- function(id, data_NMR_original, data_NMR_n, data_NMR_ns, index_metadata, grouping_var) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    output$grouping_variable_spectra_UI <- shiny::renderUI({
-      shiny::selectInput(inputId = ns("grouping_variable_spectra"), label = "choose grouping variable", choices = colnames(data_NMR_original()[, 1:index_metadata()]))
-    })
-
     spectra_plot <- reactive({
       if (input$type_of_data == "original") {
-        NMRMetab_plot_binned(data_NMR_original(), index_col = index_metadata() + 1, group_var = input$grouping_variable_spectra)
+        NMRMetab_plot_binned(data_NMR_original(), index_col = index_metadata() + 1, group_var = grouping_var())
       } else if (input$type_of_data == "normalised") {
-        NMRMetab_plot_binned(data_NMR_n(), index_col = index_metadata() + 1, group_var = input$grouping_variable_spectra)
+        NMRMetab_plot_binned(data_NMR_n(), index_col = index_metadata() + 1, group_var = grouping_var())
       } else if (input$type_of_data == "normalised and scaled") {
-        NMRMetab_plot_binned(data_NMR_ns(), index_col = index_metadata() + 1, group_var = input$grouping_variable_spectra)
+        NMRMetab_plot_binned(data_NMR_ns(), index_col = index_metadata() + 1, group_var = grouping_var())
       }
     })
     output$plotspectra <- shiny::renderPlot({

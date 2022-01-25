@@ -87,6 +87,9 @@ app_server <- function(input, output, session) {
     data_NMR_ns = data_ns,
     index_metadata = reactive({
       data_NMR$index_metadata()
+    }),
+    grouping_var = reactive({
+      input$groupingvariable_global
     })
   )
 
@@ -95,8 +98,13 @@ app_server <- function(input, output, session) {
     data_NMR_n = data_n,
     index_metadata = reactive({
       data_NMR$index_metadata()
+    }),
+    grouping_var = reactive({
+      input$groupingvariable_global
     })
-  )
+    )
+  
+
   
   mod_PCA_server("PCA_ui_1",
                  data_NMR_ns = data_ns,
