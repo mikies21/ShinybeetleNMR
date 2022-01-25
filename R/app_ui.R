@@ -12,6 +12,7 @@ app_ui <- function(request) {
       sidebarPanel(
         width = 2,
         mod_Upload_data_ui("Upload_data_ui_1"),
+        shiny::uiOutput(outputId = "groupingvariable_global_UI"),
         shiny::checkboxInput(inputId = "Q_filter_data", value = F, label = "filter dataframe"),
         conditionalPanel(
           condition = "input.Q_filter_data == true",
@@ -32,7 +33,10 @@ app_ui <- function(request) {
             title = "Univariate",
             mod_Univariate_analysis_ui("Univariate_analysis_ui_1")
           ),
-          shiny::tabPanel(title = "PCA"),
+          shiny::tabPanel(
+            title = "PCA",
+            mod_PCA_ui("PCA_ui_1")
+            ),
           shiny::tabPanel(title = "PLS-DA")
         )
       )

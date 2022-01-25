@@ -25,8 +25,12 @@ mod_Univariate_analysis_ui <- function(id) {
     ),
     fluidRow(
       shinydashboard::box(title = "table univariate",
-                          width = 12,
-                          DT::dataTableOutput(outputId = ns("univ_table")))
+                          width = 6,
+                          DT::dataTableOutput(outputId = ns("univ_table"))),
+      shinydashboard::box(title = "vulcano plot",
+                          width = 6
+        
+      )
     )
   )
 }
@@ -141,6 +145,7 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata) {
       univ_test_data()$out
     })
     
+    ### VULCANO PLOT FOR comparison between 2 groups
     
     
   })

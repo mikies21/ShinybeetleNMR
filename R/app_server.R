@@ -75,6 +75,10 @@ app_server <- function(input, output, session) {
       value = paste0("Data has been normalised by ", data_NMR$normalisation(), " and scaled by ", data_NMR$scaling())
     )
   })
+  
+  output$groupingvariable_global_UI <- shiny::renderUI({
+    shiny::selectInput(inputId = "groupingvariable_global", label = "choose grouping variable global", choices = colnames(data_original()[, 1:data_NMR$index_metadata()]))
+  })
 
   ## PLOT SPECTRAL BINS
   mod_spectra_plot_server("spectra_plot_ui_1",
@@ -93,4 +97,13 @@ app_server <- function(input, output, session) {
       data_NMR$index_metadata()
     })
   )
+  
+  mod_PCA_server("PCA_ui_1",
+                 data_NMR_ns = data_ns,
+                 index_metadata = reactive({
+                   data_NMR$index_metadata()
+                 }),
+                 grouping_var = reactive({
+                   input$groupingvariable_global
+                 }))
 }

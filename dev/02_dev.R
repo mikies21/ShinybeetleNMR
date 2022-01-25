@@ -31,6 +31,8 @@ usethis::use_package( "magrittr" )
 golem::add_module( name = "Upload_data" ) # Name of the module
 golem::add_module( name = "spectra_plot" ) # Name of the module
 golem::add_module( name = "Univariate_analysis" ) # Name of the module
+golem::add_module( name = "PCA" )
+
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
