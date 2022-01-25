@@ -9,7 +9,8 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     shiny::sidebarLayout(
-      sidebarPanel(width = 2,
+      sidebarPanel(
+        width = 2,
         mod_Upload_data_ui("Upload_data_ui_1"),
         shiny::checkboxInput(inputId = "Q_filter_data", value = F, label = "filter dataframe"),
         conditionalPanel(
@@ -27,7 +28,10 @@ app_ui <- function(request) {
             shinydashboard::infoBoxOutput(outputId = "datatrans", width = 6),
             mod_spectra_plot_ui("spectra_plot_ui_1")
           ),
-          shiny::tabPanel(title = "Univariate"),
+          shiny::tabPanel(
+            title = "Univariate",
+            mod_Univariate_analysis_ui("Univariate_analysis_ui_1")
+          ),
           shiny::tabPanel(title = "PCA"),
           shiny::tabPanel(title = "PLS-DA")
         )
