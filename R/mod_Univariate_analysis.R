@@ -17,18 +17,20 @@ mod_Univariate_analysis_ui <- function(id) {
           column(
             width = 12,
             shiny::uiOutput(outputId = ns("args_univ"))
-            )
+          )
         )
       ),
       shinydashboard::infoBoxOutput(outputId = ns("univ_information"), width = 6)
     ),
     fluidRow(
-      shinydashboard::box(title = "table univariate",
-                          width = 6,
-                          DT::dataTableOutput(outputId = ns("univ_table"))),
-      shinydashboard::box(title = "vulcano plot",
-                          width = 6
-        
+      shinydashboard::box(
+        title = "table univariate",
+        width = 6,
+        DT::dataTableOutput(outputId = ns("univ_table"))
+      ),
+      shinydashboard::box(
+        title = "vulcano plot",
+        width = 6
       )
     )
   )
@@ -40,12 +42,12 @@ mod_Univariate_analysis_ui <- function(id) {
 mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, grouping_var) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    
-    
+
+
     levels_group <- reactive({
-      length(unique(data_NMR_n()[,grouping_var()]))
+      length(unique(data_NMR_n()[, grouping_var()]))
     })
-    
+
     univ_data_text <- reactive({
       if (levels_group() < 3) {
         type_of_univ <- "something like T-test"
@@ -53,97 +55,111 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
         type_of_univ <- "ANOVA"
       }
     })
-    
-    
+
+
     output$args_univ <- renderUI({
       if (levels_group() < 3) {
         shinyWidgets::awesomeCheckboxGroup(
           inputId = ns("univ_ttest"),
-          label = "univariate test", 
+          label = "univariate test",
           choices = c("Paired", "Normal", "Equal variance"),
-          inline = TRUE, 
+          inline = TRUE,
           status = "danger"
         )
       } else {
-        shiny::selectInput(inputId = ns('anova_test'),label = 'type of correction', 
-                           choices = c('fdr', 'BH'))
+        shiny::selectInput(
+          inputId = ns("anova_test"), label = "type of correction",
+          choices = c("fdr", "BH")
+        )
       }
-      
     })
-    
-    
 
-    
+
+
+
     univ_test_data <- reactive({
       if (levels_group() < 3) {
-        if (is.element('Paired',input$univ_ttest) & is.element('Normal',input$univ_ttest) & is.element('Equal variance',input$univ_ttest)) {
-        res <- NMRMetab_UnivarTest(data = data_NMR_n(), index_col = index_metadata()+1, 
-                                   group = grouping_var(), 
-                                   paired = T, 
-                                   normality = T, 
-                                   equal.variance = T)
-        } else if (is.element('Paired',input$univ_ttest) & is.element('Normal',input$univ_ttest) & !is.element('Equal variance',input$univ_ttest)) {
-            res <- NMRMetab_UnivarTest(data = data_NMR_n(), index_col = index_metadata()+1, 
-                                                 group = grouping_var(), 
-                                                 paired = T, 
-                                                 normality = T, 
-                                                 equal.variance = F)
-        } else if (is.element('Paired',input$univ_ttest) & !is.element('Normal',input$univ_ttest) & !is.element('Equal variance',input$univ_ttest)) {
-          res <- NMRMetab_UnivarTest(data = data_NMR_n(), index_col = index_metadata()+1, 
-                                     group = grouping_var(), 
-                                     paired = T, 
-                                     normality = F, 
-                                     equal.variance = F)
-        } else if (!is.element('Paired',input$univ_ttest) & !is.element('Normal',input$univ_ttest) & !is.element('Equal variance',input$univ_ttest)) {
-          res <- NMRMetab_UnivarTest(data = data_NMR_n(), index_col = index_metadata()+1, 
-                                     group = grouping_var(), 
-                                     paired = F, 
-                                     normality = F, 
-                                     equal.variance = F)
-        } else if (!is.element('Paired',input$univ_ttest) & is.element('Normal',input$univ_ttest) & !is.element('Equal variance',input$univ_ttest)) {
-          res <- NMRMetab_UnivarTest(data = data_NMR_n(), index_col = index_metadata()+1, 
-                                     group = grouping_var(), 
-                                     paired = F, 
-                                     normality = T, 
-                                     equal.variance = F)
-        } else if (!is.element('Paired',input$univ_ttest) & !is.element('Normal',input$univ_ttest) & is.element('Equal variance',input$univ_ttest)) {
-          res <- NMRMetab_UnivarTest(data = data_NMR_n(), index_col = index_metadata()+1, 
-                                     group = grouping_var(), 
-                                     paired = F, 
-                                     normality = F, 
-                                     equal.variance = T)
-        } else if (!is.element('Paired',input$univ_ttest) & is.element('Normal',input$univ_ttest) & is.element('Equal variance',input$univ_ttest)) {
-          res <- NMRMetab_UnivarTest(data = data_NMR_n(), index_col = index_metadata()+1, 
-                                     group = grouping_var(), 
-                                     paired = F, 
-                                     normality = T, 
-                                     equal.variance = T)
+        if (is.element("Paired", input$univ_ttest) & is.element("Normal", input$univ_ttest) & is.element("Equal variance", input$univ_ttest)) {
+          res <- NMRMetab_UnivarTest(
+            data = data_NMR_n(), index_col = index_metadata() + 1,
+            group = grouping_var(),
+            paired = T,
+            normality = T,
+            equal.variance = T
+          )
+        } else if (is.element("Paired", input$univ_ttest) & is.element("Normal", input$univ_ttest) & !is.element("Equal variance", input$univ_ttest)) {
+          res <- NMRMetab_UnivarTest(
+            data = data_NMR_n(), index_col = index_metadata() + 1,
+            group = grouping_var(),
+            paired = T,
+            normality = T,
+            equal.variance = F
+          )
+        } else if (is.element("Paired", input$univ_ttest) & !is.element("Normal", input$univ_ttest) & !is.element("Equal variance", input$univ_ttest)) {
+          res <- NMRMetab_UnivarTest(
+            data = data_NMR_n(), index_col = index_metadata() + 1,
+            group = grouping_var(),
+            paired = T,
+            normality = F,
+            equal.variance = F
+          )
+        } else if (!is.element("Paired", input$univ_ttest) & !is.element("Normal", input$univ_ttest) & !is.element("Equal variance", input$univ_ttest)) {
+          res <- NMRMetab_UnivarTest(
+            data = data_NMR_n(), index_col = index_metadata() + 1,
+            group = grouping_var(),
+            paired = F,
+            normality = F,
+            equal.variance = F
+          )
+        } else if (!is.element("Paired", input$univ_ttest) & is.element("Normal", input$univ_ttest) & !is.element("Equal variance", input$univ_ttest)) {
+          res <- NMRMetab_UnivarTest(
+            data = data_NMR_n(), index_col = index_metadata() + 1,
+            group = grouping_var(),
+            paired = F,
+            normality = T,
+            equal.variance = F
+          )
+        } else if (!is.element("Paired", input$univ_ttest) & !is.element("Normal", input$univ_ttest) & is.element("Equal variance", input$univ_ttest)) {
+          res <- NMRMetab_UnivarTest(
+            data = data_NMR_n(), index_col = index_metadata() + 1,
+            group = grouping_var(),
+            paired = F,
+            normality = F,
+            equal.variance = T
+          )
+        } else if (!is.element("Paired", input$univ_ttest) & is.element("Normal", input$univ_ttest) & is.element("Equal variance", input$univ_ttest)) {
+          res <- NMRMetab_UnivarTest(
+            data = data_NMR_n(), index_col = index_metadata() + 1,
+            group = grouping_var(),
+            paired = F,
+            normality = T,
+            equal.variance = T
+          )
         }
-        
-          
       } else {
-          res <- list(
-            'out' = NMRMetab_anova(data = data_NMR_n(), group = grouping_var(), sigLevel = 0.05, adjMethod = 'fdr', index_col = index_metadata()+1)$anova_pvals,
-            'test' = 'ANOVA') 
-        
-        }
+        res <- list(
+          "out" = NMRMetab_anova(data = data_NMR_n(), group = grouping_var(), sigLevel = 0.05, adjMethod = "fdr", index_col = index_metadata() + 1)$anova_pvals,
+          "test" = "ANOVA"
+        )
+      }
     })
-    
+
     output$univ_information <- shinydashboard::renderInfoBox({
-      shinydashboard::infoBox(title = 'Type of Univariate',
-                              icon = icon("chart-bar"),
-                              value = HTML(paste0("number of levels: ", levels_group(), br(),
-                                             univ_test_data()$test))
+      shinydashboard::infoBox(
+        title = "Type of Univariate",
+        icon = icon("chart-bar"),
+        value = HTML(paste0(
+          "number of levels: ", levels_group(), br(),
+          univ_test_data()$test
+        ))
       )
     })
-    
+
     output$univ_table <- DT::renderDataTable({
       univ_test_data()$out
     })
-    
+
     ### VULCANO PLOT FOR comparison between 2 groups
-    
-    
   })
 }
 

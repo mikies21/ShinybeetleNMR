@@ -8,7 +8,10 @@ app_ui <- function(request) {
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),
+    shiny::titlePanel(shiny::HTML("<center>ShinybeetlesNMR</center>")),
+    #############################
     shiny::sidebarLayout(
+      position = "left",
       sidebarPanel(
         width = 2,
         mod_Upload_data_ui("Upload_data_ui_1"),
@@ -21,9 +24,9 @@ app_ui <- function(request) {
         )
       ),
       mainPanel(
-        navbarPage(
-          title = "ShinybeetlesNMR",
-          shiny::tabPanel(
+        shiny::tabsetPanel(
+          type = "tabs",
+          tabPanel(
             title = "home",
             shinydashboard::infoBoxOutput(outputId = "datadesc", width = 6),
             shinydashboard::infoBoxOutput(outputId = "datatrans", width = 6),
@@ -36,7 +39,7 @@ app_ui <- function(request) {
           shiny::tabPanel(
             title = "PCA",
             mod_PCA_ui("PCA_ui_1")
-            ),
+          ),
           shiny::tabPanel(title = "PLS-DA")
         )
       )

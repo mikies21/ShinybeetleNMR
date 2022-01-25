@@ -25,6 +25,10 @@ usethis::use_package( "shinydashboardPlus" )
 usethis::use_package( "dplyr" )
 usethis::use_package( "datamods" )
 usethis::use_package( "magrittr" )
+usethis::use_package( "bs4Dash" )
+usethis::use_package( "fresh" )
+
+
 
 ## Add modules ----
 ## Create a module infrastructure in R/

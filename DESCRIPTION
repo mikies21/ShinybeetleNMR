@@ -6,10 +6,12 @@ Description: PKG_DESC.
 License: MIT + file LICENSE
 Imports: 
     attempt,
+    bs4Dash,
     config (>= 0.3.1),
     datamods,
     dplyr,
     DT,
+    fresh,
     ggplot2,
     glue,
     golem (>= 0.3.1),
