@@ -12,7 +12,7 @@ mod_spectra_plot_ui <- function(id) {
   tagList(
     shinydashboard::box(
       width = 12,
-      shiny::radioButtons(inputId = ns("type_of_data"), label = "data to plot", choices = c("original", "normalised", "normalised and scaled")),
+      shiny::radioButtons(inputId = ns("type_of_data"), label = "data to plot", choices = c("original", "normalised", "normalised and scaled"), selected = "normalised and scaled"),
       shiny::plotOutput(outputId = ns("plotspectra"))
     ),
     shinydashboard::box(
