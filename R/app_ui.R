@@ -40,7 +40,10 @@ app_ui <- function(request) {
             title = "PCA",
             mod_PCA_ui("PCA_ui_1")
           ),
-          shiny::tabPanel(title = "PLS-DA")
+          shiny::tabPanel(
+            title = "PLS-DA",
+            mod_PLSDA_ui("PLSDA_ui_1")
+            )
         )
       )
     )

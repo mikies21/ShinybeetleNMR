@@ -40,8 +40,15 @@ mod_Univariate_analysis_ui <- function(id) {
           )
         ),
         fluidRow(
-          shiny::plotOutput(outputId = ns("vulcano_plot"))
+          shiny::plotOutput(outputId = ns("vulcano_plot"), brush = ns("plot_brush"))
         )
+      )
+    ),
+    fluidRow(
+      shinydashboard::box(
+        title = 'boxplots of brushed points',
+        width = 7,
+        plotOutput(outputId = ns("boxplot_univ"))
       )
     )
   )
@@ -179,20 +186,23 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
       selectInput(inputId = ns("divisor"), label = "divisor", choices = divs, selected = divs[2],multiple = F)
     })
     
+    FC_data <- reactive({
+      FC_data <- NMRmetab_foldchange(data = data_NMR_n(), groupID = grouping_var(), index_col = index_metadata() + 1, dividendID = input$dividend, input$divisor)
+      
+      merged_data <- merge(x = FC_data, y = univ_test_data()$out[,c(1,4)], by.x = "metabolite", by.y = "Metabolite/Bucket") %>%
+        dplyr::mutate(dif_exps = 'NO') %>% 
+        dplyr::mutate(BH_pvals = -log10(`BH pvals`),
+                      dif_exps = dplyr::case_when(log2FC > 0.6 & BH_pvals < 0.05 ~'UP',
+                                                  log2FC < c(-0.6) & BH_pvals < 0.05 ~'DOWN',
+                                                  TRUE~dif_exps),
+                      delabel = dplyr::case_when(dif_exps != 'NO' ~ metabolite))
+      merged_data
+    })
     
     output$vulcano_plot <- renderPlot({
       if (levels_group() < 3) {
-        FC_data <- NMRmetab_foldchange(data = data_NMR_n(), groupID = grouping_var(), index_col = index_metadata() + 1, dividendID = input$dividend, input$divisor)
         
-        merged_data <- merge(x = FC_data, y = univ_test_data()$out[,c(1,4)], by.x = "metabolite", by.y = "Metabolite/Bucket") %>%
-          dplyr::mutate(dif_exps = 'NO') %>% 
-          dplyr::mutate(BH_pvals = log10(`BH pvals`),
-                 dif_exps = dplyr::case_when(log2FC > 0.6 & BH_pvals < 0.05 ~'UP',
-                                      log2FC < c(-0.6) & BH_pvals < 0.05 ~'DOWN',
-                                      TRUE~dif_exps),
-                 delabel = dplyr::case_when(dif_exps != 'NO' ~ metabolite))
-        
-        ggplot2::ggplot(merged_data, ggplot2::aes(x = log2FC, y = -BH_pvals, label = delabel, fill = log2FC))+
+        ggplot2::ggplot(FC_data(), ggplot2::aes(x = log2FC, y = BH_pvals, label = delabel, fill = log2FC))+
           ggplot2::geom_point(colour = 'black',shape = 21, size = 3)+
           ggplot2::labs(y = '-Log 10 (adj p-value)', x = 'Log 2 (Fold Change)') +
           ggplot2::geom_vline(xintercept=c(-0.6, 0.6), col="black", linetype = 'dotted', size = 1) +
@@ -210,9 +220,42 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
     })
 
     output$univ_table <- DT::renderDataTable({
-      univ_test_data()$out
+      DT::datatable(univ_test_data()$out,
+                    rownames = FALSE,
+                    extensions = 'Buttons',
+                    options = list(
+                      autoWidth = FALSE, scrollX = TRUE,
+                      columnDefs = list(list(
+                        width = "125px", targets = "_all"
+                      )))
+                    )
     })
-
+    
+    boxplot_groups <- reactive({
+      xmin_i <- input$plot_brush$xmin
+      xmax_i <- input$plot_brush$xmax
+      ymin_i <- input$plot_brush$ymin
+      ymax_i <- input$plot_brush$ymax
+      
+      brushed_points <- FC_data() %>% 
+        dplyr::filter(dplyr::between(log2FC, xmin_i, xmax_i),
+                      dplyr::between(BH_pvals, ymin_i, ymax_i)) %>% 
+        dplyr::pull('metabolite')
+      brushed_points_and_group <- c(grouping_var(), brushed_points)
+      prep_boxplots <- data_NMR_n() %>% 
+        dplyr::select(brushed_points_and_group) %>% 
+        tidyr::pivot_longer(cols = brushed_points, names_to = 'metabolite', values_to = 'value') 
+      prep_boxplots
+    })
+    
+    output$boxplot_univ <- renderPlot({
+      req(input$plot_brush$xmin)
+      ggplot2::ggplot(boxplot_groups(), ggplot2::aes_string(x = grouping_var(), y = 'value', fill = grouping_var()))+
+        ggplot2::geom_boxplot()+
+        ggplot2::geom_jitter(show.legend = F, width = 0.1)+
+        ggplot2::facet_wrap(~metabolite, scales = "free_y")+
+        ggplot2::theme_bw(base_size = 10)
+    })
     ### VULCANO PLOT FOR comparison between 2 groups
   })
 }

@@ -36,6 +36,7 @@ golem::add_module( name = "Upload_data" ) # Name of the module
 golem::add_module( name = "spectra_plot" ) # Name of the module
 golem::add_module( name = "Univariate_analysis" ) # Name of the module
 golem::add_module( name = "PCA" )
+golem::add_module( name = "PLSDA" )
 
 
 ## Add helper functions ----
