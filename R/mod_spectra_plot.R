@@ -13,7 +13,7 @@ mod_spectra_plot_ui <- function(id) {
     shinydashboard::box(
       width = 12,
       shiny::radioButtons(inputId = ns("type_of_data"), label = "data to plot", choices = c("original", "normalised", "normalised and scaled"), selected = "normalised and scaled"),
-      shiny::plotOutput(outputId = ns("plotspectra"))
+      plotly::plotlyOutput(outputId = ns("plotspectra"))
     ),
     shinydashboard::box(
       width = 12,
@@ -38,12 +38,12 @@ mod_spectra_plot_server <- function(id, data_NMR_original, data_NMR_n, data_NMR_
         NMRMetab_plot_binned(data_NMR_ns(), index_col = index_metadata() + 1, group_var = grouping_var())
       }
     })
-    output$plotspectra <- shiny::renderPlot({
-      plot(spectra_plot())
+    output$plotspectra <- plotly::renderPlotly({
+      spectra_plot()$plot
     })
 
     output$data_table <- DT::renderDataTable({
-      ggplot2::ggplot_build(spectra_plot())$plot$data
+      spectra_plot()$sample_sum_df
     })
   })
 }

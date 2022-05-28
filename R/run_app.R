@@ -12,7 +12,7 @@ run_app <- function(onStart = NULL,
                     enableBookmarking = NULL,
                     uiPattern = "/",
                     ...) {
-  with_golem_options(
+  golem::with_golem_options(
     app = shinyApp(
       ui = app_ui,
       server = app_server,

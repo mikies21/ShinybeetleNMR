@@ -24,6 +24,7 @@ app_ui <- function(request) {
         )
       ),
       mainPanel(
+        width = 10,
         shiny::tabsetPanel(
           type = "tabs",
           tabPanel(

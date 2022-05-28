@@ -175,18 +175,18 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
     
     
     ### VULCANO PLOT
-    output$dividend_UI <- renderUI({
+    output$dividend_UI <- shiny::renderUI({
       divs <- unique(data_NMR_n()[, grouping_var()])
       selectInput(inputId = ns("dividend"), label = "dividend", choices = divs, selected = divs[1], multiple = F)
     })
     
     
-    output$divisor_UI <- renderUI({
+    output$divisor_UI <- shiny::renderUI({
       divs <- unique(data_NMR_n()[, grouping_var()])
       selectInput(inputId = ns("divisor"), label = "divisor", choices = divs, selected = divs[2],multiple = F)
     })
     
-    FC_data <- reactive({
+    FC_data <- shiny::reactive({
       FC_data <- NMRmetab_foldchange(data = data_NMR_n(), groupID = grouping_var(), index_col = index_metadata() + 1, dividendID = input$dividend, input$divisor)
       
       merged_data <- merge(x = FC_data, y = univ_test_data()$out[,c(1,4)], by.x = "metabolite", by.y = "Metabolite/Bucket") %>%
@@ -199,7 +199,7 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
       merged_data
     })
     
-    output$vulcano_plot <- renderPlot({
+    output$vulcano_plot <- shiny::renderPlot({
       if (levels_group() < 3) {
         
         ggplot2::ggplot(FC_data(), ggplot2::aes(x = log2FC, y = BH_pvals, label = delabel, fill = log2FC))+
@@ -231,7 +231,7 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
                     )
     })
     
-    boxplot_groups <- reactive({
+    boxplot_groups <- shiny::reactive({
       xmin_i <- input$plot_brush$xmin
       xmax_i <- input$plot_brush$xmax
       ymin_i <- input$plot_brush$ymin

@@ -56,7 +56,7 @@ mod_PLSDA_server <- function(id, data_NMR_ns, index_metadata, grouping_var){
     output$PLSDA_plot <- renderPlot({
       #NMRMetab_PLS_DA_plot(data_NMR_ns(), groupID = grouping_var(), index_col = index_metadata(), components = c(1,2))
       #comps_scores <- cbind.data.frame("group" = meta_data[, groupID], PLSDA_res()$variates$X[, components], )
-      ggplot2::ggplot(as.data.frame(PLSDA_res()$variates$X), ggplot2::aes_string(paste0("comp", input$PLSx), y = paste0("comp", input$PLSy)))+
+      plot1 <- ggplot2::ggplot(as.data.frame(PLSDA_res()$variates$X), ggplot2::aes_string(paste0("comp", input$PLSx), y = paste0("comp", input$PLSy)))+
         ggplot2::geom_point(aes(colour = data_NMR_ns()[, grouping_var()])) +
         ggplot2::theme_bw(base_size = 16) +
         ggplot2::labs(
@@ -64,6 +64,11 @@ mod_PLSDA_server <- function(id, data_NMR_ns, index_metadata, grouping_var){
           y = paste0("comp", input$PLSy)
         ) +
         ggplot2::guides(colour = guide_legend(title = grouping_var()))
+      
+      if (isTRUE(input$elipses)) {
+        plot1 <- plot1 + ggplot2::stat_ellipse(aes(colour = data_NMR_ns()[, grouping_var()]), show.legend = F)
+      }
+      plot1
       
     })
  
