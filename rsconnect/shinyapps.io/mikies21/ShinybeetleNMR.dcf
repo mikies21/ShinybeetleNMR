@@ -5,9 +5,9 @@ account: mikies21
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4164160
-bundleId: 5516281
+bundleId: 5949081
 url: https://mikies21.shinyapps.io/shinybeetlenmr/
-when: 1643323352.72646
-lastSyncTime: 1643323352.72646
+when: 1653603320.38791
+lastSyncTime: 1653603320.38791
 asMultiple: FALSE
 asStatic: FALSE

@@ -27,7 +27,7 @@ usethis::use_package( "datamods" )
 usethis::use_package( "magrittr" )
 usethis::use_package( "bs4Dash" )
 usethis::use_package( "fresh" )
-
+usethis::use_package( "janitor" )
 
 
 ## Add modules ----

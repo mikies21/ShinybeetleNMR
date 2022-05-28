@@ -16,17 +16,17 @@ knitr::opts_chunk$set(
 # ShinybeetleNMR
 
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
 The goal of ShinybeetleNMR is to ...
 
 ## Installation
 
-You can install the development version of ShinybeetleNMR like so:
+You can install the development version of ShinybeetleNMR from [GitHub](https://github.com/) with:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+# install.packages("devtools")
+devtools::install_github("mikies21/ShinybeetleNMR")
 ```
 
 ## Example

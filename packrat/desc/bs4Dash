@@ -1,0 +1,43 @@
+Package: bs4Dash
+Type: Package
+Title: A 'Bootstrap 4' Version of 'shinydashboard'
+Version: 2.0.3
+Authors@R: c(
+  person("David", "Granjon", email = "dgranjon@ymail.com", role = c("aut", "cre")),
+  person(family = "RinteRface", role = "cph"),
+  person(family = "Almasaeed Studio", role = c("ctb", "cph"), comment = "AdminLTE3 theme for Bootstrap 4"),
+  person("Winston", "Chang", role = c("ctb", "cph"), comment = "Utils functions from shinydashboard"),
+  person("Thomas", "Park", role = c("ctb", "cph"), comment = "Bootswatch Sketchy theme CSS"))
+Maintainer: David Granjon <dgranjon@ymail.com>
+Description: Make 'Bootstrap 4' Shiny dashboards. Use the full power
+    of 'AdminLTE3', a dashboard template built on top of 'Bootstrap 4' 
+    <https://github.com/ColorlibHQ/AdminLTE>.
+URL: https://rinterface.github.io/bs4Dash/index.html,
+        https://github.com/RinteRface/bs4Dash
+BugReports: https://github.com/RinteRface/bs4Dash/issues
+License: GPL (>= 2) | file LICENSE
+Imports: shiny (>= 1.6.0), htmltools (>= 0.5.1.1), jsonlite (>=
+        0.9.16), fresh, waiter (>= 0.2.3), httpuv (>= 1.5.2),
+        lifecycle, bslib (>= 0.2.4), httr
+Suggests: knitr, rmarkdown, testthat (>= 2.1.0), covr, golem, DT,
+        thematic (>= 0.1.2), echarts4r
+Encoding: UTF-8
+RoxygenNote: 7.1.2
+VignetteBuilder: knitr
+Collate: 'feedbacks.R' 'useful-items.R' 'tabs.R' 'render-functions.R'
+        'cards.R' 'dashboardSidebar.R' 'dashboardBody.R'
+        'dashboardFooter.R' 'dashboardControlbar.R' 'dashboardHeader.R'
+        'dashboardPage.R' 'aliases.R' 'auto-color.R'
+        'bs4Dash-package.r' 'bs4DashGallery.R' 'deps.R' 'grid.R'
+        'inputs.R' 'skinSelector.R' 'utils.R'
+RdMacros: lifecycle
+NeedsCompilation: no
+Packaged: 2021-09-15 22:06:27 UTC; granjda1
+Author: David Granjon [aut, cre],
+  RinteRface [cph],
+  Almasaeed Studio [ctb, cph] (AdminLTE3 theme for Bootstrap 4),
+  Winston Chang [ctb, cph] (Utils functions from shinydashboard),
+  Thomas Park [ctb, cph] (Bootswatch Sketchy theme CSS)
+Repository: CRAN
+Date/Publication: 2021-09-16 05:10:17 UTC
+Built: R 4.1.2; ; 2022-01-22 02:30:51 UTC; windows

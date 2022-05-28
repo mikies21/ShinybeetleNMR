@@ -1,32 +1,29 @@
 
-NMRMetab_plot_binned <- function(binned_data, index_col = 2, group_var = "sampleID") {
-  x <- grp <- y <- NULL
-  datgrp <- binned_data %>% dplyr::pull(var = group_var)
-  datmatrix <- binned_data[, index_col:ncol(binned_data)]
-  dataTemp <- data.frame(
-    x = rep(1:ncol(datmatrix), nrow(datmatrix)),
-    y = as.vector(t(datmatrix)), grp = factor(rep(datgrp,
-      each = ncol(datmatrix)
-    ))
-  )
-  sample_sum <- dataTemp %>%
-    dplyr::group_by(x, grp) %>%
-    dplyr::summarize(
-      mean = mean(y),
-      sd = sd(y), mean_p2sd = mean + 2 * sd, mean_m2sd = mean -
-        2 * sd
-    ) %>%
-    dplyr::ungroup()
-  p <- ggplot2::ggplot(data = sample_sum, aes(
-    x = x, y = mean,
-    group = grp, col = grp, stat = "identity"
-  )) +
-    geom_line()
-  p <- p + theme_bw() + ggtitle("NMR bins") + xlab("Bin") +
-    ylab("Intensity") + theme(
-      plot.title = element_text(hjust = 0.5),
-      axis.text.x = element_text(angle = 90), legend.position = "none"
-    )
-  plot(p)
-  return(p)
+NMRMetab_plot_binned <- function(binned_data, index_col = 2, group_var = "sampleID", title_plot = "NMR bins") {
+  
+  
+  sample_sum <- binned_data %>% 
+    dplyr::mutate(dplyr::across(1:c(index_col-1), as.character)) %>% 
+    dplyr::group_by(.data[[group_var]]) %>% 
+    dplyr::summarise(dplyr::across(where(is.numeric), mean)) 
+  
+  sample_sum_pivot <- sample_sum %>% 
+    tidyr::pivot_longer(cols = !1, names_to = "metabolite", values_to = "mean") 
+  
+  colnames(sample_sum_pivot)[1] <- "grp"
+  metabolites <-unique(sample_sum_pivot$metabolite)
+  
+  sample_sum_pivot <- split(sample_sum_pivot, f = sample_sum_pivot$grp)
+  
+  p <- plotly::plot_ly(x = ~metabolites)  %>% 
+    plotly::layout(title = title_plot,
+                   xaxis = list(title = "Bin", showticklabels = FALSE),
+                   yaxis = list(title = "intensity", fixedrange = TRUE),
+                   hovermode = "x unified")
+  
+  for (i in seq_along(sample_sum_pivot)){
+    p <- p %>% plotly::add_lines(y = sample_sum_pivot[[i]]$mean, name = sample_sum_pivot[[i]]$grp,
+                                 line = list(width = 4))
+  }
+  return(list("plot" = p, "sample_sum_df" = sample_sum))
 }

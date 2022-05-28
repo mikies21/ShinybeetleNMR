@@ -9,8 +9,8 @@
 #' @importFrom shiny NS tagList
 mod_PCA_ui <- function(id) {
   ns <- NS(id)
-  tagList(
-    fluidRow(
+    fluidPage(
+      fluidRow(
       column(
         width = 1,
         numericInput(inputId = ns("PCx"), label = "PCx", value = 1, min = 1, max = 15, step = 1),
@@ -27,15 +27,16 @@ mod_PCA_ui <- function(id) {
       ),
       shinydashboard::box(
         width = 5,
-        shiny::plotOutput(outputId = ns("PCA_plot"))
+        plotly::plotlyOutput(outputId = ns("PCA_plot"))
       ),
       shinydashboard::box(
         width = 5,
         shiny::plotOutput(outputId = ns("PCA_loading_plot"))
       )
     ),
-    DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
-  )
+    fluidRow(
+      DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
+    ))
 }
 
 #' PCA Server Functions
@@ -49,14 +50,7 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       PCA <- prcomp(x = data_NMR_ns()[, c(index_metadata() + 1):ncol(data_NMR_ns())], center = F, scale. = F)
     })
 
-
-
-    output$table_PC <- DT::renderDataTable({
-      PCA <- prcomp(x = data_NMR_ns()[, c(index_metadata() + 1):ncol(data_NMR_ns())], center = F, scale. = F)$x
-    })
-
-
-    output$PCA_plot <- renderPlot({
+    output$PCA_plot <- plotly::renderPlotly({
       prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
 
       plot1 <- ggplot2::ggplot(as.data.frame(PCA_res()$x), aes_string(x = paste0("PC", input$PCx), y = paste0("PC", input$PCy))) +
@@ -71,7 +65,7 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       if (isTRUE(input$elipses)) {
         plot1 <- plot1 + ggplot2::stat_ellipse(aes(colour = data_NMR_ns()[, grouping_var()]), show.legend = F)
       }
-      plot1
+      plotly::ggplotly(plot1, source = "pointsOfInterest")
     })
 
 
@@ -90,6 +84,12 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
         )
       plot2
     })
+    
+    
+    output$table_PC <- DT::renderDataTable({
+      d <- plotly::event_data("plotly_click", source = "pointsOfInterest")
+    })
+    
   })
 }
 

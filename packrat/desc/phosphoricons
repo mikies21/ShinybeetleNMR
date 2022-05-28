@@ -1,0 +1,32 @@
+Package: phosphoricons
+Title: 'Phosphor' Icons for R
+Version: 0.1.1
+Authors@R: 
+    c(person(given = "Victor",
+             family = "Perrier",
+             role = c("aut", "cre", "cph"),
+             email = "victor.perrier@dreamrs.fr"),
+      person(given = "Fanny",
+             family = "Meyer",
+             role = "aut"),
+      person(given = "Phosphor Icons",
+             role = "cph",
+             comment = "Phosphor Icons <https://github.com/phosphor-icons>"))
+Description: Use 'Phosphor' icons in 'shiny' applications or 'rmarkdown' documents. Icons are available in
+    5 different weights and can be customized by setting color, size, orientation and more.
+License: MIT + file LICENSE
+Encoding: UTF-8
+RoxygenNote: 7.1.1
+Depends: R (>= 2.10)
+Imports: htmltools (>= 0.3)
+Suggests: covr, shiny, tinytest
+NeedsCompilation: no
+Packaged: 2021-08-21 08:51:14 UTC; perri
+Author: Victor Perrier [aut, cre, cph],
+  Fanny Meyer [aut],
+  Phosphor Icons [cph] (Phosphor Icons
+    <https://github.com/phosphor-icons>)
+Maintainer: Victor Perrier <victor.perrier@dreamrs.fr>
+Repository: CRAN
+Date/Publication: 2021-08-23 18:00:02 UTC
+Built: R 4.1.2; ; 2022-01-21 21:55:03 UTC; windows

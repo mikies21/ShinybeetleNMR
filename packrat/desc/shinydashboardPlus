@@ -1,0 +1,47 @@
+Package: shinydashboardPlus
+Type: Package
+Title: Add More 'AdminLTE2' Components to 'shinydashboard'
+Version: 2.0.4.9000
+Authors@R: c(
+  person("David", "Granjon", email = "dgranjon@ymail.com", role = c("aut", "cre")),
+  person(family = "RinteRface", role = "cph"),
+  person(family = "Almasaeed Studio", role = c("ctb", "cph"), comment = "AdminLTE2 theme for Bootstrap 3"),
+  person("Guang", "Yang", role = c("ctb", "cph"), comment = "ygdashboard original template"),
+  person("Winston", "Chang", role = c("ctb", "cph"), comment = "Functions from shinydashboard"),
+  person("Victor", "Perrier", email = "victor.perrier@dreamrs.fr", role = "ctb",
+          comment = "improved the shinydashboardPlusGallery"))
+Maintainer: David Granjon <dgranjon@ymail.com>
+Description: Extend 'shinydashboard' with 'AdminLTE2' components. 
+             'AdminLTE2' is a free 'Bootstrap 3' dashboard template available
+             at <https://adminlte.io>. Customize boxes, add timelines and a lot more. 
+License: GPL (>= 2) | file LICENSE
+Imports: shiny, htmltools, shinydashboard, fresh, waiter (>= 0.2.3),
+        lifecycle
+Suggests: styler (>= 1.2.0), shinyAce, shinyWidgets, shinyEffects,
+        shinyjqui, knitr, rmarkdown, jsonlite
+URL: https://github.com/RinteRface/shinydashboardPlus,
+        https://rinterface.com/shiny/shinydashboardPlus/
+BugReports: https://github.com/RinteRface/shinydashboardPlus/issues
+Encoding: UTF-8
+RoxygenNote: 7.1.2
+VignetteBuilder: knitr
+RdMacros: lifecycle
+RemoteType: github
+RemoteHost: api.github.com
+RemoteRepo: shinydashboardPlus
+RemoteUsername: RinteRface
+RemoteRef: HEAD
+RemoteSha: c8c7b13046d408201ec87016e382fc7b0d8227d5
+GithubRepo: shinydashboardPlus
+GithubUsername: RinteRface
+GithubRef: HEAD
+GithubSHA1: c8c7b13046d408201ec87016e382fc7b0d8227d5
+NeedsCompilation: no
+Packaged: 2022-01-25 15:58:42 UTC; micfres
+Author: David Granjon [aut, cre],
+  RinteRface [cph],
+  Almasaeed Studio [ctb, cph] (AdminLTE2 theme for Bootstrap 3),
+  Guang Yang [ctb, cph] (ygdashboard original template),
+  Winston Chang [ctb, cph] (Functions from shinydashboard),
+  Victor Perrier [ctb] (improved the shinydashboardPlusGallery)
+Built: R 4.1.0; ; 2022-01-25 15:58:44 UTC; windows
