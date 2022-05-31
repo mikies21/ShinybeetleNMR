@@ -55,12 +55,25 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       
       if (input$PCx != 0) {
         PCA_scores <- cbind(as.data.frame(PCA_res()$x[,c(input$PCx, input$PCy)]),data_NMR_ns()[, 1:index_metadata()])
-        plot1 <- plotly::plot_ly() 
+        
+        ## get colour palette
+        colourCount = length(unique(PCA_scores[, grouping_var()]))
+        if (colourCount>8) {
+          getPalette = grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Dark2"))
+          pal = getPalette(colourCount)
+        } else {
+          pal = RColorBrewer::brewer.pal(8, "Dark2")[1:colourCount]
+        }
+        
+        
+        
+        plot1 <- plotly::plot_ly(colors = pal[1:colourCount]) 
         
         plot1 <- plot1 %>% plotly::add_trace(data = PCA_scores,
                             x = as.formula(paste0('~', "PC", input$PCx)),
                             y = as.formula(paste0('~', "PC", input$PCy)),
                             color = as.formula(paste0('~', grouping_var())),
+                            #colors = pal[1:colourCount],
                             type = "scatter",
                             mode = "markers") 
         
@@ -68,19 +81,21 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
           ###calculate elipses
           
           ###### elipses try
-          ellipses_df %>% 
-            ggplot2::ggplot(ggplot2::aes_string(x = "PC1", y = "PC2", colour = "group"))
-          ##########
-                            
-                            ellipses_df <- lapply(split(PCA_scores, PCA_scores[,grouping_var()]), function(x){
-            eli = ellipse::ellipse(cor(x[,1],x[,2]),
-                                   scale=c(sd(x[,2]),sd(x[,2])),
-                                   centre=c(mean(x[,2]), mean(x[,2])), 
-                                   level = 0.95,
-                                   npoints = 250)
-            as.data.frame(eli)
-          }) %>% 
-            dplyr::bind_rows(.id = "grp")
+          #ellipses_df %>% 
+          #  ggplot2::ggplot(ggplot2::aes_string(x = "PC1", y = "PC2", colour = "group"))
+          ###########
+          
+          
+          
+          gplot <- ggplot2::ggplot(PCA_scores, 
+                                   ggplot2::aes_string(x = paste0("PC", input$PCx),
+                                                       y = paste0("PC", input$PCy), 
+                                                       colour = grouping_var(),
+                                                       group = grouping_var()))+
+            ggplot2::stat_ellipse() 
+          gplot <- ggplot2::ggplot_build(plot = gplot)$data[[1]]
+          gplot$group <- as.factor(gplot$group)
+    
          
           
           #for (i in seq_along(ellipses_df)){
@@ -90,13 +105,17 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
           #                      mode = "lines")
           #}
           
+          
           plot1 <- plot1 %>% 
-            plotly::add_trace(data = ellipses_df, 
+            plotly::add_trace(data = gplot, 
                               type = "scatter", 
                               mode = "lines", 
                               x=~x,
                               y=~y,
-                              color =~grp)
+                              color =~group,
+                              #colors = pal[1:colourCount],
+                              showlegend = F
+                              )
         }
         
         plot1 <- plot1 %>% 
