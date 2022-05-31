@@ -9,8 +9,8 @@
 #' @importFrom shiny NS tagList
 mod_PCA_ui <- function(id) {
   ns <- NS(id)
-    fluidPage(
-      fluidRow(
+  tagList(
+    fluidRow(
       column(
         width = 1,
         numericInput(inputId = ns("PCx"), label = "PCx", value = 1, min = 1, max = 15, step = 1),
@@ -27,17 +27,17 @@ mod_PCA_ui <- function(id) {
       ),
       shinydashboard::box(
         width = 5,
-        plotly::plotlyOutput(outputId = ns("PCA_plot"))
+        shiny::plotOutput(outputId = ns("PCA_plot"))
       ),
       shinydashboard::box(
         width = 5,
         shiny::plotOutput(outputId = ns("PCA_loading_plot"))
       )
     ),
-    fluidRow(
-      DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
-    ))
+    DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
+  )
 }
+
 
 #' PCA Server Functions
 #'
@@ -45,14 +45,14 @@ mod_PCA_ui <- function(id) {
 mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
+    
     PCA_res <- reactive({
       PCA <- prcomp(x = data_NMR_ns()[, c(index_metadata() + 1):ncol(data_NMR_ns())], center = F, scale. = F)
     })
-
+    
     output$PCA_plot <- plotly::renderPlotly({
       prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
-
+      
       plot1 <- ggplot2::ggplot(as.data.frame(PCA_res()$x), aes_string(x = paste0("PC", input$PCx), y = paste0("PC", input$PCy))) +
         ggplot2::geom_point(aes(colour = data_NMR_ns()[, grouping_var()])) +
         ggplot2::theme_bw(base_size = 16) +
@@ -61,14 +61,14 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
           y = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = "")
         ) +
         ggplot2::guides(colour = guide_legend(title = grouping_var()))
-
+      
       if (isTRUE(input$elipses)) {
         plot1 <- plot1 + ggplot2::stat_ellipse(aes(colour = data_NMR_ns()[, grouping_var()]), show.legend = F)
       }
       plotly::ggplotly(plot1, source = "pointsOfInterest")
     })
-
-
+    
+    
     output$PCA_loading_plot <- renderPlot({
       prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
       plot2 <- ggplot2::ggplot(
@@ -92,6 +92,7 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
     
   })
 }
+
 
 ## To be copied in the UI
 # mod_PCA_ui("PCA_ui_1")

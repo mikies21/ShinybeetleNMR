@@ -1,5 +1,3 @@
-library(shiny)
-library()
 #' Upload_data UI Function
 #'
 #' @description A shiny Module.
@@ -43,28 +41,28 @@ mod_Upload_data_ui <- function(id) {
 }
 
 
+
+
 #' Upload_data Server Functions
 #'
 #' @noRd
 mod_Upload_data_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-    selectionInput <- reactive({
-      input$selectInputData
-    })
-    
+
     upfile <- reactive({
-      if (selectionInput() == "JAKi data (example)") {
-        data("data_CRS")
-        return(data_CRS)
-      } else {
+      if (input$selectInputData == "upload csv") {
         file <- input$fileupload
         ext <- tools::file_ext(file$fileupload)
         
         req(file)
         
-        return(read.csv(file$datapath))
+        read.csv(file$datapath)
+      } else {
+        data("data_CRS")
+        return(data_CRS)
       }
+      
       
       # data_CRS
     })
@@ -120,9 +118,3 @@ mod_Upload_data_server <- function(id) {
     )
   })
 }
-
-## To be copied in the UI
-# mod_Upload_data_ui("Upload_data_ui_1")
-
-## To be copied in the server
-# mod_Upload_data_server("Upload_data_ui_1")

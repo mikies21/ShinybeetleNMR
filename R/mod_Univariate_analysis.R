@@ -40,7 +40,7 @@ mod_Univariate_analysis_ui <- function(id) {
           )
         ),
         fluidRow(
-          shiny::plotOutput(outputId = ns("vulcano_plot"), brush = ns("plot_brush"))
+          plotly::plotlyOutput(outputId = ns("vulcano_plot"))#, brush = ns("plot_brush"))
         )
       )
     ),
@@ -53,6 +53,7 @@ mod_Univariate_analysis_ui <- function(id) {
     )
   )
 }
+
 
 #' Univariate_analysis Server Functions
 #'
@@ -175,45 +176,87 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
     
     
     ### VULCANO PLOT
-    output$dividend_UI <- shiny::renderUI({
+    output$dividend_UI <- renderUI({
       divs <- unique(data_NMR_n()[, grouping_var()])
       selectInput(inputId = ns("dividend"), label = "dividend", choices = divs, selected = divs[1], multiple = F)
     })
     
     
-    output$divisor_UI <- shiny::renderUI({
+    output$divisor_UI <- renderUI({
       divs <- unique(data_NMR_n()[, grouping_var()])
       selectInput(inputId = ns("divisor"), label = "divisor", choices = divs, selected = divs[2],multiple = F)
     })
     
-    FC_data <- shiny::reactive({
+    FC_data <- reactive({
       FC_data <- NMRmetab_foldchange(data = data_NMR_n(), groupID = grouping_var(), index_col = index_metadata() + 1, dividendID = input$dividend, input$divisor)
       
       merged_data <- merge(x = FC_data, y = univ_test_data()$out[,c(1,4)], by.x = "metabolite", by.y = "Metabolite/Bucket") %>%
-        dplyr::mutate(dif_exps = 'NO') %>% 
+        dplyr::mutate(dif_exps = 'not significant') %>% 
         dplyr::mutate(BH_pvals = -log10(`BH pvals`),
-                      dif_exps = dplyr::case_when(log2FC > 0.6 & BH_pvals < 0.05 ~'UP',
-                                                  log2FC < c(-0.6) & BH_pvals < 0.05 ~'DOWN',
+                      dif_exps = dplyr::case_when(abs(log2FC) >= 0.6 & BH_pvals >= 1.30102999566 ~ 'Significant & FoldChange ',
+                                                  abs(log2FC) < 0.6 & BH_pvals >= 1.30102999566 ~ 'Significant',
+                                                  abs(log2FC) >= 0.6 & BH_pvals < 1.30102999566 ~ "FoldChange",
                                                   TRUE~dif_exps),
-                      delabel = dplyr::case_when(dif_exps != 'NO' ~ metabolite))
+                      delabel = dplyr::case_when(dif_exps != 'not significant' ~ metabolite))
+      
+      # add a grouping column; default value is "not significant"
+      #merged_data["dif_exps"] <- "NotSignificant"
+      # change the grouping for the entries with significance but not a large enough Fold change
+      #merged_data[which(merged_data['BH_pvals'] < 0.05 & abs(merged_data['log2FC']) < 1.5 ),"dif_exps"] <- "Significant"
+      
+      # change the grouping for the entries a large enough Fold change but not a low enough p value
+      #merged_data[which(merged_data['BH_pvals'] > 0.05 & abs(merged_data['log2FC']) > 1.5 ),"dif_exps"] <- "FoldChange"
+      
+      # change the grouping for the entries with both significance and large enough fold change
+      #merged_data[which(merged_data['BH_pvals'] < 0.05 & abs(merged_data['log2FC']) > 1.5 ),"dif_exps"] <- "Significant&FoldChange"
+      
+      
+      
       merged_data
     })
     
-    output$vulcano_plot <- shiny::renderPlot({
+    hline <- function(y = 0, color = "black") {
+      list(
+        type = "line", 
+        x0 = 0, 
+        x1 = 1, 
+        xref = "paper",
+        y0 = y, 
+        y1 = y, 
+        line = list(color = color, dash="dot")
+      )
+    }
+    vline <- function(x = 0, color = "black") {
+      list(
+        type = "line",
+        y0 = 0,
+        y1 = 1,
+        yref = "paper",
+        x0 = x,
+        x1 = x,
+        line = list(color = color, dash="dot")
+      )
+    }
+    
+    output$vulcano_plot <- plotly::renderPlotly({
       if (levels_group() < 3) {
+        #click_data <- plotly::event_data("plotly_click",  priority = "event")
+        #select_data <- plotly::event_data("plotly_selected", priority   = "event")
+        p <- plotly::plot_ly(FC_data(),
+                             x = ~log2FC,
+                             y = ~BH_pvals,
+                             color = ~dif_exps,
+                             text = ~metabolite, 
+                             type = "scatter", mode = "markers") %>% 
+          plotly::layout(shapes = list(vline(0.6),
+                                       vline(-0.6),
+                                       hline(-log10(0.05))),
+                         title = "Vulcano Plot",
+                         xaxis = list(title = "Fold Change"),
+                         yaxis = list(title = "-log10(adj p-value)")) #%>% 
+          #highlight("plotly_selected", dynamic = TRUE)
         
-        ggplot2::ggplot(FC_data(), ggplot2::aes(x = log2FC, y = BH_pvals, label = delabel, fill = log2FC))+
-          ggplot2::geom_point(colour = 'black',shape = 21, size = 3)+
-          ggplot2::labs(y = '-Log 10 (adj p-value)', x = 'Log 2 (Fold Change)') +
-          ggplot2::geom_vline(xintercept=c(-0.6, 0.6), col="black", linetype = 'dotted', size = 1) +
-          ggplot2::geom_hline(yintercept=-log10(0.05), col="black", linetype = 'dotted', size = 1) +
-          ggplot2::scale_fill_gradient2(low = "#5BAEF7", high = "#CA3617", mid = '#000000', )+
-          #scale_fill_manual(values = c('#5BAEF7', '#000000', '#CA3617'))+
-          #scale_color_brewer(palette = "Set1",)+
-          ggplot2::theme_bw()+
-          ggplot2::theme(legend.position = 'right')+
-          ggrepel::geom_text_repel(show.legend = F, size = 3)
-        
+        p
       } else {
         NULL
       }
@@ -231,7 +274,7 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
                     )
     })
     
-    boxplot_groups <- shiny::reactive({
+    boxplot_groups <- reactive({
       xmin_i <- input$plot_brush$xmin
       xmax_i <- input$plot_brush$xmax
       ymin_i <- input$plot_brush$ymin
@@ -259,6 +302,8 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
     ### VULCANO PLOT FOR comparison between 2 groups
   })
 }
+
+
 
 ## To be copied in the UI
 # mod_Univariate_analysis_ui("Univariate_analysis_ui_1")
