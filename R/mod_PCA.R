@@ -9,11 +9,11 @@
 #' @importFrom shiny NS tagList
 mod_PCA_ui <- function(id) {
   ns <- NS(id)
-    fluidPage(
-      fluidRow(
+  tagList(
+    fluidRow(
       column(
         width = 1,
-        numericInput(inputId = ns("PCx"), label = "PCx", value = 1, min = 1, max = 15, step = 1),
+        numericInput(inputId = ns("PCx"), label = "PCx", value = 1, min = 0, max = 15, step = 1),
         shinyWidgets::materialSwitch(
           inputId = ns("elipses"),
           label = "add ellipses",
@@ -31,13 +31,13 @@ mod_PCA_ui <- function(id) {
       ),
       shinydashboard::box(
         width = 5,
-        shiny::plotOutput(outputId = ns("PCA_loading_plot"))
+        plotly::plotlyOutput(outputId = ns("PCA_loading_plot"))
       )
     ),
-    fluidRow(
-      DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
-    ))
+    DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
+  )
 }
+
 
 #' PCA Server Functions
 #'
@@ -45,43 +45,129 @@ mod_PCA_ui <- function(id) {
 mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
-
+    
     PCA_res <- reactive({
       PCA <- prcomp(x = data_NMR_ns()[, c(index_metadata() + 1):ncol(data_NMR_ns())], center = F, scale. = F)
     })
-
+    
     output$PCA_plot <- plotly::renderPlotly({
       prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
-
-      plot1 <- ggplot2::ggplot(as.data.frame(PCA_res()$x), aes_string(x = paste0("PC", input$PCx), y = paste0("PC", input$PCy))) +
-        ggplot2::geom_point(aes(colour = data_NMR_ns()[, grouping_var()])) +
-        ggplot2::theme_bw(base_size = 16) +
-        ggplot2::labs(
-          x = paste0("PC", input$PCx, " (", prop_var[input$PCx], "%)", sep = ""),
-          y = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = "")
-        ) +
-        ggplot2::guides(colour = guide_legend(title = grouping_var()))
-
-      if (isTRUE(input$elipses)) {
-        plot1 <- plot1 + ggplot2::stat_ellipse(aes(colour = data_NMR_ns()[, grouping_var()]), show.legend = F)
-      }
-      plotly::ggplotly(plot1, source = "pointsOfInterest")
-    })
-
-
-    output$PCA_loading_plot <- renderPlot({
-      prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
-      plot2 <- ggplot2::ggplot(
-        as.data.frame(PCA_res()$rotation),
-        aes_string(x = paste0("PC", input$PCx), y = paste0("PC", input$PCy))
-      ) +
-        ggplot2::geom_point() +
-        ggplot2::theme_bw(base_size = 16) +
-        ggplot2::labs(
-          title = "PCA loadings",
-          x = paste0("PC", input$PCx, " (", prop_var[input$PCx], "%)", sep = ""),
-          y = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = "")
+      
+      if (input$PCx != 0) {
+        PCA_scores <- cbind(as.data.frame(PCA_res()$x[,c(input$PCx, input$PCy)]),data_NMR_ns()[, 1:index_metadata()])
+        plot1 <- plotly::plot_ly() 
+        
+        plot1 <- plot1 %>% plotly::add_trace(data = PCA_scores,
+                            x = as.formula(paste0('~', "PC", input$PCx)),
+                            y = as.formula(paste0('~', "PC", input$PCy)),
+                            color = as.formula(paste0('~', grouping_var())),
+                            type = "scatter",
+                            mode = "markers") 
+        
+        if (isTRUE(input$elipses)) {
+          ###calculate elipses
+          
+          ###### elipses try
+          ellipses_df %>% 
+            ggplot2::ggplot(ggplot2::aes_string(x = "PC1", y = "PC2", colour = "group"))
+          ##########
+                            
+                            ellipses_df <- lapply(split(PCA_scores, PCA_scores[,grouping_var()]), function(x){
+            eli = ellipse::ellipse(cor(x[,1],x[,2]),
+                                   scale=c(sd(x[,2]),sd(x[,2])),
+                                   centre=c(mean(x[,2]), mean(x[,2])), 
+                                   level = 0.95,
+                                   npoints = 250)
+            as.data.frame(eli)
+          }) %>% 
+            dplyr::bind_rows(.id = "grp")
+         
+          
+          #for (i in seq_along(ellipses_df)){
+          #  plot1 <- plot1 %>% 
+          #    plotly::add_trace(x= ellipses_df[[i]]$x, y=ellipses_df[[i]]$y,  name =ellipses_df[[i]]$grp,
+          #                      type = "scatter", 
+          #                      mode = "lines")
+          #}
+          
+          plot1 <- plot1 %>% 
+            plotly::add_trace(data = ellipses_df, 
+                              type = "scatter", 
+                              mode = "lines", 
+                              x=~x,
+                              y=~y,
+                              color =~grp)
+        }
+        
+        plot1 <- plot1 %>% 
+            plotly::layout(title = "PCA scores plot",
+                           xaxis = list(title = paste0("PC", input$PCx, " (", prop_var[input$PCx], "%)", sep = "")),
+                           yaxis = list(title = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = "")))
+        
+        
+        
+      } else {
+        PCA_scores <- cbind(data_NMR_ns()[, grouping_var()], as.data.frame(PCA_res()$x[, input$PCy]))
+        
+        colnames(PCA_scores) <- c("grp", "PC")
+        
+        dens <- with(PCA_scores, tapply(PC,
+                                        INDEX = grp,
+                                        density))
+        df <- data.frame(
+          x = unlist(lapply(dens, "[[", "x")),
+          y = unlist(lapply(dens, "[[", "y")),
+          cut = rep(names(dens), each = length(dens[[1]]$x))
         )
+        plot1 <-  plotly::plot_ly(df, x = ~x, y = ~y, color = ~cut) %>%
+          plotly::add_lines() %>% 
+          plotly::layout(title = "PCA density plot",
+                         xaxis = list(title = ""),
+                         yaxis = list(title = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = ""), fixedrange = TRUE),
+                         hovermode = "x unified")
+      }
+      #%>% 
+      #highlight("plotly_selected", dynamic = TRUE)
+      
+      #plot1 <- ggplot2::ggplot(as.data.frame(PCA_res()$x), ggplot2::aes_string(x = paste0("PC", input$PCx), y = paste0("PC", input$PCy))) +
+      #  ggplot2::geom_point(ggplot2::aes(colour = data_NMR_ns()[, grouping_var()])) +
+      #  ggplot2::theme_bw(base_size = 16) +
+      #  ggplot2::labs(
+      #    x = paste0("PC", input$PCx, " (", prop_var[input$PCx], "%)", sep = ""),
+      #    y = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = "")
+      #  ) +
+      #  ggplot2::guides(colour = ggplot2::guide_legend(title = grouping_var()))
+      
+      plot1
+      #plotly::ggplotly(plot1, source = "pointsOfInterest")
+    })
+    
+    
+    output$PCA_loading_plot <- plotly::renderPlotly({
+      prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
+      
+      PCA_loadings <- as.data.frame(PCA_res()$rotation)
+      PCA_loadings$metabolites <- rownames(PCA_loadings)
+      if (input$PCx != 0) {
+        plot2 <- plotly::plot_ly(PCA_loadings,
+                               x = as.formula(paste0('~', "PC", input$PCx)),
+                               y = as.formula(paste0('~', "PC", input$PCy)),
+                               type = "scatter", 
+                               mode = "markers") %>% 
+        plotly::layout(title = "PCA Loadings plot",
+                       xaxis = list(title = paste0("PC", input$PCx, " (", prop_var[input$PCx], "%)", sep = "")),
+                       yaxis = list(title = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = "")))
+      } else {
+        plot2 <- plotly::plot_ly(PCA_loadings,
+                                 x =~metabolites,
+                                 y =as.formula(paste0('~', "PC", input$PCy)),
+                                 type = "scatter", 
+                                 mode = "markers") %>% 
+          plotly::layout(title = "PCA Loadings plot",
+                         xaxis = list(title = "bins/metabolites",showticklabels = FALSE),
+                         yaxis = list(title = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = ""),fixedrange = TRUE),
+                         hovermode = "x unified")
+        }
       plot2
     })
     
@@ -92,6 +178,7 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
     
   })
 }
+
 
 ## To be copied in the UI
 # mod_PCA_ui("PCA_ui_1")

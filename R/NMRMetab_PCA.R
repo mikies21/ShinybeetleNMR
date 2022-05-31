@@ -12,7 +12,7 @@ NMRMetab_PCA_plot <- function(data, groupID, index_col = 2, elipses = F, pcs = c
   PCnamey <- paste(PCnames[2], " (", prop_var[2], "%)", sep = "")
   col_group <- data[1:index_col - 1]
 
-
+ 
 
   drugs_scores <- cbind.data.frame(col_group, drugs_scores)
   # colnames(drugs_scores) <- c('PCx','PCy')

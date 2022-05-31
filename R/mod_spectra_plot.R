@@ -7,7 +7,7 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_spectra_plot_ui <- function(id) {
+mod_spectra_plot_ui <-function(id) {
   ns <- NS(id)
   tagList(
     shinydashboard::box(
