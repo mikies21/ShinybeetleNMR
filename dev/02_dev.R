@@ -28,8 +28,14 @@ usethis::use_package( "magrittr" )
 usethis::use_package( "bs4Dash" )
 usethis::use_package( "fresh" )
 usethis::use_package( "janitor" )
+usethis::use_package( "GGally" )
+usethis::use_package( "RColorBrewer" )
 usethis::use_package( "mixOmics" )
-
+usethis::use_package( "tibble" )
+usethis::use_package( "rsample" )
+usethis::use_package( "rlang" )
+usethis::use_package( "tidyr" )
+usethis::use_package( "yardstick" )
 
 ## Add modules ----
 ## Create a module infrastructure in R/

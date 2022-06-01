@@ -12,15 +12,15 @@ mod_Upload_data_ui <- function(id) {
   tagList(
     shinyWidgets::prettyRadioButtons(
       inputId = ns("selectInputData"),
-      label = "Choose:", 
+      label = "Choose:",
       choices = c("JAKi data (example)", "upload csv"),
-      icon = icon("check"), 
+      icon = icon("check"),
       bigger = TRUE,
       status = "info",
       animation = "jelly"
     ),
     shiny::conditionalPanel(
-      condition = "input.selectInputData == 'upload csv'", 
+      condition = "input.selectInputData == 'upload csv'",
       ns = ns,
       shiny::fileInput(inputId = ns("fileupload"), label = "upload csv file", multiple = F)
       # selectInput(inputId = "addfiltermod", label = "filtering options", choices = c("a", "b"))
@@ -54,16 +54,17 @@ mod_Upload_data_server <- function(id) {
       if (input$selectInputData == "upload csv") {
         file <- input$fileupload
         ext <- tools::file_ext(file$fileupload)
-        
+
         req(file)
-        
+
         read.csv(file$datapath)
       } else {
         data("data_CRS")
-        return(data_CRS)
+        data_CRS
+        
       }
-      
-      
+
+
       # data_CRS
     })
 

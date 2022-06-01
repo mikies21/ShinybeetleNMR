@@ -115,19 +115,16 @@ app_server <- function(input, output, session) {
       input$groupingvariable_global
     })
   )
-  
-  
-  
+
+
+
   mod_PLSDA_server("PLSDA_ui_1",
-                   data_NMR_ns = data_ns,
-                   index_metadata = reactive({
-                     data_NMR$index_metadata()
-                   }),
-                   grouping_var = reactive({
-                     input$groupingvariable_global
-                   }))
-  
-  
-  
-  
+    data_NMR_ns = data_ns,
+    index_metadata = reactive({
+      data_NMR$index_metadata()
+    }),
+    grouping_var = reactive({
+      input$groupingvariable_global
+    })
+  )
 }

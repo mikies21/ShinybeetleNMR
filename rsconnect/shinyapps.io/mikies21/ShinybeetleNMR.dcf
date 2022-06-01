@@ -1,0 +1,14 @@
+name: ShinybeetleNMR
+title: ShinybeetleNMR
+username:
+account: mikies21
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4164160
+bundleId: 5967763
+url: https://mikies21.shinyapps.io/shinybeetlenmr/
+when: 1654090579.64002
+lastSyncTime: 1654090579.64002
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .Rbuildignore

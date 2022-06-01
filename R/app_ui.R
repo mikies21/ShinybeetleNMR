@@ -44,7 +44,7 @@ app_ui <- function(request) {
           shiny::tabPanel(
             title = "PLS-DA",
             mod_PLSDA_ui("PLSDA_ui_1")
-            )
+          )
         )
       )
     )
