@@ -248,7 +248,7 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
       volc_selects(unique(volc_select_OLDNEW))
     })
     
-    observeEvent(plotly::event_data("plotly_legendclick", source = "FC", priority = "event"), {
+    observeEvent(input$clear_selection, {
       volc_selects(NULL)
     })
     
@@ -262,12 +262,13 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
         
         p <- plotly::plot_ly(df,#key = rownames(df),
                              x = ~log2FC,
-                             customdata = ~metabolite,source = "FC",
-          y = ~BH_pvals,
-          color = ~dif_exps,
-          text = ~metabolite,
-          type = "scatter",
-          mode = "markers",
+                             customdata = ~metabolite,
+                             source = "FC",
+                             y = ~BH_pvals,
+                             color = ~dif_exps,
+                             text = ~metabolite,
+                             type = "scatter",
+                             mode = "markers",
           hovertemplate = paste(
             "%{text}",
             "<br>BH p-value: %{y:.3f},",
