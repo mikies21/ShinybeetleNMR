@@ -29,6 +29,18 @@ mod_spectra_plot_server <- function(id, data_NMR_original, data_NMR_n, data_NMR_
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    
+    ### selecting colour pallette
+    pal <- shiny::reactive({
+      colourCount <- length(unique(data_NMR_n()[, grouping_var()]))
+      if (colourCount > 8) {
+        getPalette <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Set2"))
+        pal1 <- getPalette(colourCount)
+      } else {
+        pal1 <- RColorBrewer::brewer.pal(8, "Dark2")[1:colourCount]
+      }
+    })
+    
     spectra_plot <- reactive({
       if (input$type_of_data == "original") {
         NMRMetab_plot_binned(data_NMR_original(), index_col = index_metadata() + 1, group_var = grouping_var())
@@ -39,7 +51,11 @@ mod_spectra_plot_server <- function(id, data_NMR_original, data_NMR_n, data_NMR_
       }
     })
     output$plotspectra <- plotly::renderPlotly({
-      spectra_plot()$plot
+      p <- spectra_plot()$plot+
+        ggplot2::scale_color_manual(values = pal())
+      plotly::ggplotly(p, tooltip = "x") %>% 
+        plotly::layout(hovermode = "x unified")
+      
     })
 
     output$data_table <- DT::renderDataTable({

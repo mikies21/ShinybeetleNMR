@@ -54,9 +54,9 @@ mod_Univariate_analysis_ui <- function(id) {
         actionButton(ns("clear_selection"), label = "clear selection", width = "25%"),
         ### test brushed and clicked points
         
-        DT::dataTableOutput(ns("test_brush"))
+        #DT::dataTableOutput(ns("test_brush"))
         
-        #plotOutput(outputId = ns("boxplot_univ"))
+        plotOutput(outputId = ns("boxplot_univ"))
       )
     )
   )
@@ -69,6 +69,17 @@ mod_Univariate_analysis_ui <- function(id) {
 mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, grouping_var) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
+    
+    ### selecting colour pallette
+    pal <- shiny::reactive({
+      colourCount <- length(unique(data_NMR_n()[, grouping_var()]))
+      if (colourCount > 8) {
+        getPalette <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Set2"))
+        pal1 <- getPalette(colourCount)
+      } else {
+        pal1 <- RColorBrewer::brewer.pal(8, "Dark2")[1:colourCount]
+      }
+    })
 
 
     levels_group <- reactive({
@@ -317,6 +328,7 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
     
     ######### check brushed and clicked points
     
+    
     output$test_brush <- DT::renderDataTable({
       df <- FC_data()
       df_filtered <- df %>% dplyr::filter(metabolite %in% volc_selects())
@@ -324,31 +336,22 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
     })
     
     boxplot_groups <- reactive({
-      xmin_i <- input$plot_brush$xmin
-      xmax_i <- input$plot_brush$xmax
-      ymin_i <- input$plot_brush$ymin
-      ymax_i <- input$plot_brush$ymax
 
-      brushed_points <- FC_data() %>%
-        dplyr::filter(
-          dplyr::between(log2FC, xmin_i, xmax_i),
-          dplyr::between(BH_pvals, ymin_i, ymax_i)
-        ) %>%
-        dplyr::pull("metabolite")
-      brushed_points_and_group <- c(grouping_var(), brushed_points)
+      brushed_points_and_group <- c(grouping_var(), volc_selects())
       prep_boxplots <- data_NMR_n() %>%
         dplyr::select(brushed_points_and_group) %>%
-        tidyr::pivot_longer(cols = brushed_points, names_to = "metabolite", values_to = "value")
+        tidyr::pivot_longer(cols = volc_selects(), names_to = "metabolite", values_to = "value")
       prep_boxplots
     })
 
     output$boxplot_univ <- renderPlot({
-      req(input$plot_brush$xmin)
+      req(volc_selects())
       ggplot2::ggplot(boxplot_groups(), ggplot2::aes_string(x = grouping_var(), y = "value", fill = grouping_var())) +
         ggplot2::geom_boxplot() +
         ggplot2::geom_jitter(show.legend = F, width = 0.1) +
         ggplot2::facet_wrap(~metabolite, scales = "free_y") +
-        ggplot2::theme_bw(base_size = 10)
+        ggplot2::theme_bw(base_size = 10)+
+        ggplot2::scale_fill_manual(values = pal())
     })
     ### VULCANO PLOT FOR comparison between 2 groups
   })

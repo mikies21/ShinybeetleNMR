@@ -27,14 +27,14 @@ mod_PLSDA_ui <- function(id) {
       ),
       shinydashboard::box(
         width = 5,
-        shiny::plotOutput(outputId = ns("PLSDA_plot"))
+        plotly::plotlyOutput(outputId = ns("PLSDA_plot"))
       ),
       shinydashboard::box(
         width = 5,
-        shiny::plotOutput(outputId = ns("PCA_loading_plot"))
+        plotly::plotlyOutput(outputId = ns("vipsPlot"))
       )
     ),
-    DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
+    DT::dataTableOutput(outputId = ns("vipsTable"), width = 12)
   )
 }
 
@@ -54,24 +54,63 @@ mod_PLSDA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       )
     })
 
+    ## get colour palette
+    pal <- shiny::reactive({
+      colourCount <- length(unique(data_NMR_ns()[, grouping_var()]))
+      if (colourCount > 8) {
+        getPalette <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Set2"))
+        pal1 <- getPalette(colourCount)
+      } else {
+        pal1 <- RColorBrewer::brewer.pal(8, "Dark2")[1:colourCount]
+      }
+    })
+    
 
-    output$PLSDA_plot <- renderPlot({
+    output$PLSDA_plot <- plotly::renderPlotly({
       # NMRMetab_PLS_DA_plot(data_NMR_ns(), groupID = grouping_var(), index_col = index_metadata(), components = c(1,2))
       # comps_scores <- cbind.data.frame("group" = meta_data[, groupID], PLSDA_res()$variates$X[, components], )
-      plot1 <- ggplot2::ggplot(as.data.frame(PLSDA_res()$variates$X), ggplot2::aes_string(paste0("comp", input$PLSx), y = paste0("comp", input$PLSy))) +
+      plot1 <- ggplot2::ggplot(as.data.frame(PLSDA_res()$variates$X),
+                               ggplot2::aes_string(x = paste0("comp", input$PLSx), 
+                                                   y = paste0("comp", input$PLSy))) +
         ggplot2::geom_point(aes(colour = data_NMR_ns()[, grouping_var()])) +
         ggplot2::theme_bw(base_size = 16) +
         ggplot2::labs(
           x = paste0("comp", input$PLSx),
           y = paste0("comp", input$PLSy)
         ) +
-        ggplot2::guides(colour = guide_legend(title = grouping_var()))
+        ggplot2::guides(colour = guide_legend(title = grouping_var()))+
+        ggplot2::scale_color_manual(values = pal())
 
       if (isTRUE(input$elipses)) {
         plot1 <- plot1 + ggplot2::stat_ellipse(aes(colour = data_NMR_ns()[, grouping_var()]), show.legend = F)
       }
-      plot1
+      plot1 <- plotly::ggplotly(plot1, tooltip = "colour")
     })
+    
+    vips <- reactive({
+      vip <- as.data.frame(mixOmics::vip(PLSDA_res()))
+    })
+    
+    output$vipsPlot <- plotly::renderPlotly({
+      vipP <- vips() %>% 
+        tibble::rowid_to_column("metabolite")
+        
+      
+      p <- ggplot2::ggplot(vipP, ggplot2::aes_string(y = "metabolite",
+                                                     x = paste0("comp", input$PLSy)))+
+        ggplot2::geom_point(colour = "darkred")+
+        ggplot2::theme_bw(base_size = 10)+
+        ggplot2::labs(title = "VIP",
+                      x = "variable importance in projection")
+      p <- plotly::ggplotly(p, tooltip = "y")
+      p
+        
+      })
+    
+    output$vipsTable <- DT::renderDataTable({
+      vips()
+    })
+    
   })
 }
 

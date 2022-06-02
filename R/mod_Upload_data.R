@@ -25,6 +25,7 @@ mod_Upload_data_ui <- function(id) {
       shiny::fileInput(inputId = ns("fileupload"), label = "upload csv file", multiple = F)
       # selectInput(inputId = "addfiltermod", label = "filtering options", choices = c("a", "b"))
     ),
+    #shiny::actionButton(inputId = ns("start_everything"), label = "start analysis", width = "100%"), 
     shiny::sliderInput(inputId = ns("metadata_colnames"), label = "metadata columns", min = 1, max = 10, value = 9, step = 1),
     fluidRow(
       column(
@@ -67,7 +68,6 @@ mod_Upload_data_server <- function(id) {
 
       # data_CRS
     })
-
 
     data_n <- reactive({
       NMRMetab_norm_scale(upfile(), index_col = input$metadata_colnames + 1, normalisation = input$normalisation, bin = NA, scaling = "None", writeToFile = F)

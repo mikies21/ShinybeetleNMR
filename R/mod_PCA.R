@@ -13,14 +13,14 @@ mod_PCA_ui <- function(id) {
     fluidRow(
       column(
         width = 2,
-        radioButtons(inputId = ns("MatrixView"), label = "show matrix plot", choices = c("No", "Yes"), selected = "No", inline = T),
+        radioButtons(inputId = ns("PCplotType"), label = "plot Type", choices = c("2d","3d", "corrplot"), selected = "2d", inline = T),
         conditionalPanel(
-          condition = "input.MatrixView == 'Yes'",
+          condition = "input.PCplotType == 'corrplot'",
           ns = ns,
           numericInput(inputId = ns("maxPC"), label = "PC to plot ", value = 3, min = 2, max = 15, step = 1)
         ),
         conditionalPanel(
-          condition = "input.MatrixView == 'No'",
+          condition = "input.PCplotType == '2d'",
           ns = ns,
           fluidRow(
             column(
@@ -38,7 +38,26 @@ mod_PCA_ui <- function(id) {
               numericInput(inputId = ns("PCy"), label = "PCy", value = 2, min = 1, max = 15, step = 1)
             )
           )
-        )
+        ),
+        conditionalPanel(
+          condition = "input.PCplotType == '3d'",
+          ns = ns,
+          fluidRow(
+            column(
+              width = 4,
+              numericInput(inputId = ns("PCx"), label = "PCx", value = 1, min = 1, max = 15, step = 1)
+            ),
+            column(
+              width = 4,
+              numericInput(inputId = ns("PCy"), label = "PCy", value = 2, min = 1, max = 15, step = 1)
+            ),
+            column(
+              width = 4,
+              numericInput(inputId = ns("PCz"), label = "PCz", value = 3, min = 1, max = 15, step = 1)
+            )
+            
+          )
+          )
       ),
       shinydashboard::box(
         width = 5,
@@ -49,7 +68,12 @@ mod_PCA_ui <- function(id) {
         plotly::plotlyOutput(outputId = ns("PCA_loading_plot"))
       )
     ),
-    DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
+    fluidRow(
+      column(
+        width = 12,
+        plotly::plotlyOutput(outputId = ns("explained_var_plot")))
+    )
+    #DT::dataTableOutput(outputId = ns("table_PC"), width = 12)
   )
 }
 
@@ -76,11 +100,19 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
         pal1 <- RColorBrewer::brewer.pal(8, "Dark2")[1:colourCount]
       }
     })
+    
+    ### get explained variances
+    prop_var <- reactive({
+      round(summary(PCA_res())$importance[2, ] * 100, digits = 3)
+      })
 
     output$PCA_plot <- plotly::renderPlotly({
+      
         prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
+        
+        if (input$PCplotType != "3d") {
 
-        if (input$MatrixView == "No") {
+        if (input$PCplotType == "2d") {
           # PCA as points
           if (input$PCx != 0) {
             PCA_scores <- cbind(as.data.frame(PCA_res()$x[, c(input$PCx, input$PCy)]), data_NMR_ns()[, 1:index_metadata()])
@@ -137,7 +169,7 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
               ) +
               ggplot2::theme(legend.title = ggplot2::element_blank())
           }
-        } else {
+        } else if (input$PCplotType == "corrplor") {
           PCA_scores <- cbind(as.data.frame(PCA_res()$x[, 1:input$maxPC]), data_NMR_ns()[, 1:index_metadata()])
             plot1 <- GGally::ggpairs(PCA_scores, 
                             mapping = ggplot2::aes_string(colour = grouping_var()),
@@ -152,13 +184,28 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
 
         plot1 <- plotly::ggplotly(plot1)
         plot1
+        } else {
+        
+        PCA_scores <- cbind(as.data.frame(PCA_res()$x[, c(input$PCx, input$PCy, input$PCz)]), data_NMR_ns()[, 1:index_metadata()])
+        
+        plot1 <- plotly::plot_ly(data = PCA_scores,
+                                 x = as.formula(paste0("~PC", input$PCx)),
+                                 y = as.formula(paste0("~PC", input$PCy)),
+                                 z = as.formula(paste0("~PC", input$PCz)),
+                                 color = as.formula(paste0("~", grouping_var())),
+                                 colors = pal()) %>%
+          plotly::add_markers()
+        plot1
+        }
         # plotly::ggplotly(plot1, source = "pointsOfInterest")
       })
 
 
       output$PCA_loading_plot <- plotly::renderPlotly({
         
-        if (input$MatrixView == "No") {
+        
+          
+        if (input$PCplotType == "2d") {
           
         prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
 
@@ -200,7 +247,7 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
         }
         plot2 <- plotly::ggplotly(plot2)
         
-      } else {
+      } else if (input$PCplotType == "corrplot") {
         
         PCA_loadings <- as.data.frame(PCA_res()$rotation)
         PCA_loadings$metabolites <- rownames(PCA_loadings)
@@ -212,14 +259,44 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
           ggplot2::labs(title = "PCA loadings correlogram")
         
         plot2 <- plotly::ggplotly(plot2) 
-      }
+        plot2
+        } else if (input$PCplotType == "3d") {
+          PCA_loadings <- as.data.frame(PCA_res()$rotation)
+          PCA_loadings$metabolites <- rownames(PCA_loadings)
+          
+          plot2 <- plotly::plot_ly(data = PCA_loadings,
+                                   x = as.formula(paste0("~PC", input$PCx)),
+                                   y = as.formula(paste0("~PC", input$PCy)),
+                                   z = as.formula(paste0("~PC", input$PCz)),
+                                   text =~metabolites,
+                                   color = I("black")) %>%
+            plotly::add_markers()
+          #%>% 
+           # plotly::layout(hoverinfo = "text")
+          plot2
+        }
+        
       })
         
+      output$explained_var_plot <- plotly::renderPlotly({
+        prop_var_df <- data.frame(exp_var = prop_var(),
+                                  dimensions = 1:length(prop_var()))
         
-
-
-
-
+        p <- ggplot2::ggplot(prop_var_df, ggplot2::aes(x = dimensions,
+                                                       y = exp_var,
+                                                       group = 1))+
+          ggplot2::geom_point(size = 2)+
+          ggplot2::geom_line(show.legend = F)+
+          ggplot2::geom_col(show.legend = F)+
+          ggplot2::labs(title = "Scree plot",
+                        x = "Dimensions",
+                        y = "% of explained variance")+
+          ggplot2::theme_bw(base_size = 10)
+        
+        p <- plotly::ggplotly(p, tooltip = c("y", "x")) %>% 
+        plotly::layout(hovermode = "x unified")
+        
+      })
     output$table_PC <- DT::renderDataTable({
       d <- plotly::event_data("plotly_click", source = "pointsOfInterest")
     })
