@@ -31,6 +31,18 @@ mod_PLSDA_ui <- function(id) {
       ),
       shinydashboard::box(
         width = 5,
+        fluidRow(
+          column(
+            width = 4,
+            shiny::checkboxInput(inputId = ns("order_VIP"), 
+                                 label = "order",
+                                 value = F, width = "100%")),
+          column(
+            width = 4,
+            conditionalPanel(condition = "input.order_VIP",
+                             ns = ns,
+                             shiny::uiOutput(outputId = ns("VIPtoshow_UI"))))
+          ),###
         plotly::plotlyOutput(outputId = ns("vipsPlot"))
       )
     ),
@@ -87,24 +99,61 @@ mod_PLSDA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       plot1 <- plotly::ggplotly(plot1, tooltip = "colour")
     })
     
-    vips <- reactive({
-      vip <- as.data.frame(mixOmics::vip(PLSDA_res()))
+    ### ui output to select how many to show
+    
+    output$VIPtoshow_UI <- shiny::renderUI({
+      shiny::numericInput(inputId = ns("VIPtoshow"), 
+                          label = "vips", 
+                          value = 10,#nrow(ceiling(vips()/2)), 
+                          min = 1, 
+                          max = 50,
+                          step = 1,
+                          width = "100%")
     })
     
+    vips <- reactive({
+      vip <- as.data.frame(mixOmics::vip(PLSDA_res()))
+      vip$metabolite <- rownames(vip)
+      vip <- vip[,c(paste0("comp", input$PLSy), "metabolite")]
+      colnames(vip) <- c("comp", "metabolite")
+      vip <- vip[order(-vip$comp),]
+      vip
+    })
+    
+    
     output$vipsPlot <- plotly::renderPlotly({
-      vipP <- vips() %>% 
-        tibble::rowid_to_column("metabolite")
+      vipP <- vips()
+      if (isFALSE(input$order_VIP)) {
         
+        p <- ggplot2::ggplot(vipP, 
+                             ggplot2::aes(x = metabolite,
+                                          y = comp))+
+          ggplot2::geom_point(colour = "darkred")+
+          ggplot2::theme_bw(base_size = 10)+
+          ggplot2::labs(title = "VIP",
+                        x = "variable importance in projection")
+        
+        
+        p <- plotly::ggplotly(p, tooltip = "x") %>% 
+          plotly::layout(hovermode = "x unified")
+        
+      } else if (isTRUE(input$order_VIP)) {
+        vipP <- vipP[1:input$VIPtoshow,]
+        p <- ggplot2::ggplot(vipP, ggplot2::aes(x = comp,
+                                                y = reorder(metabolite, comp)))+
+          ggplot2::geom_point(colour = "darkred")+
+          ggplot2::theme_bw(base_size = 10)+
+          ggplot2::labs(title = "VIP",
+                        x = "variable importance in projection", 
+                        y = "")
+        
+        p <- plotly::ggplotly(p, tooltip = "y") 
+        
+      }
       
-      p <- ggplot2::ggplot(vipP, ggplot2::aes_string(y = "metabolite",
-                                                     x = paste0("comp", input$PLSy)))+
-        ggplot2::geom_point(colour = "darkred")+
-        ggplot2::theme_bw(base_size = 10)+
-        ggplot2::labs(title = "VIP",
-                      x = "variable importance in projection")
-      p <- plotly::ggplotly(p, tooltip = "y")
+      
       p
-        
+      
       })
     
     output$vipsTable <- DT::renderDataTable({

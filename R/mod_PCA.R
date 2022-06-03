@@ -284,14 +284,17 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
         
         p <- ggplot2::ggplot(prop_var_df, ggplot2::aes(x = dimensions,
                                                        y = exp_var,
-                                                       group = 1))+
+                                                       group = 1, 
+                                                       label = exp_var, 
+                                                       text = exp_var))+
           ggplot2::geom_point(size = 2)+
           ggplot2::geom_line(show.legend = F)+
           ggplot2::geom_col(show.legend = F)+
           ggplot2::labs(title = "Scree plot",
                         x = "Dimensions",
                         y = "% of explained variance")+
-          ggplot2::theme_bw(base_size = 10)
+          ggplot2::theme_bw(base_size = 10)+
+          ggrepel::geom_label_repel(show.legend = F)
         
         p <- plotly::ggplotly(p, tooltip = c("y", "x")) %>% 
         plotly::layout(hovermode = "x unified")
