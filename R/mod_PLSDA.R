@@ -46,7 +46,27 @@ mod_PLSDA_ui <- function(id) {
         plotly::plotlyOutput(outputId = ns("vipsPlot"))
       )
     ),
-    DT::dataTableOutput(outputId = ns("vipsTable"), width = 12)
+    fluidRow(
+      column(
+        width = 4,
+        shiny::checkboxInput(inputId = ns("perfModel"), 
+                             label = "order",
+                             value = F, width = "100%")
+        )
+    ),
+    fluidRow(
+      conditionalPanel(condition = "input.perfModel",
+                       ns = ns,
+                       column(
+                         width = 4,
+                         shiny::numericInput(ns("compPeffModel"),
+                                             label = "number of components for the model",
+                                             value = 3,
+                                             min = 1,
+                                             max = 10)
+                         )
+                       )
+      )
   )
 }
 
@@ -155,10 +175,29 @@ mod_PLSDA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       p
       
       })
-    
+    ### table of VIPs
     output$vipsTable <- DT::renderDataTable({
       vips()
     })
+    
+    
+    ### Run CVs
+    cv_res <- reactive({
+      cv_df = mixOmics::perf(object = PLSDA_res,
+                             validation = "loo", 
+                             folds = CV_folds, 
+                             nrepeats = CV-repeats, 
+                             progressBar = F)
+      cv_df = cv_df[['error.rate']] %>%
+        lapply(data.frame) %>%
+        dplyr::bind_rows(.id = 'type')
+      cv_df$comp = c(1:(nrow(cv_df)/2))
+      #dplyr::mutate(comp = factor(c(1:(nrow(error.dfs)/2))))
+      #cv_df$comp = factor(c(1:(nrow(error.dfs)/2)))
+      #error.dfs = reshape2::melt(error.dfs)
+      cv_df
+    })
+    
     
   })
 }
