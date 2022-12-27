@@ -21,6 +21,7 @@ usethis::use_package( "plotly")
 usethis::use_package( "DT")
 usethis::use_package( "shinydashboard" )
 usethis::use_package( "shinyWidgets" )
+usethis::use_package( "BiocManager" )
 usethis::use_package( "shinydashboardPlus" )
 usethis::use_package( "dplyr" )
 usethis::use_package( "datamods" )
@@ -36,6 +37,7 @@ usethis::use_package( "rsample" )
 usethis::use_package( "rlang" )
 usethis::use_package( "tidyr" )
 usethis::use_package( "yardstick" )
+usethis::use_package( "bayestestR" )
 
 ## Add modules ----
 ## Create a module infrastructure in R/
@@ -44,7 +46,7 @@ golem::add_module( name = "spectra_plot" ) # Name of the module
 golem::add_module( name = "Univariate_analysis" ) # Name of the module
 golem::add_module( name = "PCA" )
 golem::add_module( name = "PLSDA" )
-
+golem::add_module( name = "spectra_plot_RAW" )
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*
