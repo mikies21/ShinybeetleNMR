@@ -6,6 +6,8 @@ Description: PKG_DESC.
 License: MIT + file LICENSE
 Imports: 
     attempt,
+    bayestestR,
+    BiocManager,
     bs4Dash,
     config (>= 0.3.1),
     datamods,
@@ -35,7 +37,7 @@ Imports:
     yardstick
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Suggests: 
     rmarkdown,
     knitr,
