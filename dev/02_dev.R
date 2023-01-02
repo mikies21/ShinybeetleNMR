@@ -19,6 +19,7 @@
 usethis::use_package( "ggplot2" )
 usethis::use_package( "plotly")
 usethis::use_package( "DT")
+usethis::use_package( "bs4Dash" )
 usethis::use_package( "shinydashboard" )
 usethis::use_package( "shinyWidgets" )
 usethis::use_package( "BiocManager" )

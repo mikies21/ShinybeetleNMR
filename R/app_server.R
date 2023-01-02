@@ -6,8 +6,6 @@
 #' @noRd
 app_server <- function(input, output, session) {
   # Your application server logic
-  usethis::use_pipe()
-  
   
   ########## Raw spectra server
   mod_spectra_plot_RAW_server("spectra_plot_RAW_1")

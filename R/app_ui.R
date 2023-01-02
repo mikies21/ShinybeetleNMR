@@ -108,6 +108,11 @@ app_ui <- function(request) {
             mod_PLSDA_ui("PLSDA_ui_1")
             )
           )
+        ),
+      footer = bs4Dash::dashboardFooter(
+        left = "Thank you for trying this app!",
+        right = tags$a(href="https://twitter.com/micfresneda", "@micfresneda"),
+        fixed = FALSE
         )
       )
     ### title Page
