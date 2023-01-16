@@ -36,11 +36,13 @@ app_ui <- function(request) {
           bs4Dash::menuItem(
             text = "Start Here",
             tabName = "start",
+            icon = icon("house"),
             selected = T
           ),
           bs4Dash::menuItem(
             text = "Plot Spectra", 
-            tabName = "PlotSpectra"
+            tabName = "PlotSpectra",
+            icon = icon("image")
           ),
           bs4Dash::sidebarHeader(title = "Analysis"),
           bs4Dash::menuItem(
@@ -50,32 +52,37 @@ app_ui <- function(request) {
             ),
           bs4Dash::menuItem(
             text = "Univariate",
-            tabName = "Univariate"),
+            tabName = "Univariate",
+            icon = icon("poo")),
           bs4Dash::menuItem(
             text = "PCA",
-            tabName = "PCA"),
+            tabName = "PCA", 
+            icon = icon("ghost")),
           bs4Dash::menuItem(
             text = "PLS-DA",
-            tabName = "PLSDA")
+            tabName = "PLSDA", 
+            icon = icon("viruses"))
         )
       ),
       
-      
-      bs4Dash::dashboardControlbar(
+      controlbar = bs4Dash::dashboardControlbar(
         skin = "light",
         pinned = TRUE,
         overlay = FALSE,
         collapsed = F, 
-        mod_Upload_data_ui("Upload_data_ui_1"),
+        uiOutput("AnalysisInputs"),
+        
+        
+        #mod_Upload_data_ui("Upload_data_ui_1"),
         
         #          # selectInput(inputId = "addfiltermod", label = "filtering options", choices = c("a", "b"))
         #        )),
-        shiny::uiOutput(outputId = "groupingvariable_global_UI"),
-        shiny::checkboxInput(inputId = "Q_filter_data", value = F, label = "filter dataframe"),
-        shiny::conditionalPanel(
-          condition = "input.Q_filter_data == true",
-          datamods::filter_data_ui(id = "filter", show_nrow = TRUE, max_height = NULL)
-          )
+        #shiny::uiOutput(outputId = "groupingvariable_global_UI"),
+        #shiny::checkboxInput(inputId = "Q_filter_data", value = F, label = "filter dataframe"),
+        #shiny::conditionalPanel(
+        #  condition = "input.Q_filter_data == true",
+        #  datamods::filter_data_ui(id = "filter", show_nrow = TRUE, max_height = NULL)
+        #  )
         ),
       
       

@@ -7,6 +7,29 @@
 app_server <- function(input, output, session) {
   # Your application server logic
   
+  #### ui outputs for " Display controlbarMenu() in right sidebar of shiny dashboard based on tab selection"
+  output$AnalysisInputs <- renderUI({
+    tagList(
+      fluidPage(
+      conditionalPanel(condition = 'input.sidebar=="home" || input.sidebar=="Univariate" || input.sidebar=="PCA" || input.sidebar=="PLSDA"' ,
+                       mod_Upload_data_ui("Upload_data_ui_1"),
+                       
+                                 # selectInput(inputId = "addfiltermod", label = "filtering options", choices = c("a", "b"))
+                       #        )),
+                       shiny::uiOutput(outputId = "groupingvariable_global_UI"),
+                       shiny::checkboxInput(inputId = "Q_filter_data", value = F, label = "filter dataframe"),
+                       shiny::conditionalPanel(
+                         condition = "input.Q_filter_data == true",
+                         datamods::filter_data_ui(id = "filter", show_nrow = TRUE, max_height = NULL)
+                         )
+                       ), 
+      conditionalPanel(condition = 'input.sidebar=="PlotSpectra"', "test")
+      )
+    )
+  })
+  
+  
+  
   ########## Raw spectra server
   mod_spectra_plot_RAW_server("spectra_plot_RAW_1")
   
