@@ -48,6 +48,7 @@ golem::add_module( name = "Univariate_analysis" ) # Name of the module
 golem::add_module( name = "PCA" )
 golem::add_module( name = "PLSDA" )
 golem::add_module( name = "spectra_plot_RAW" )
+golem::add_module( name = "spectra_plot_RAW_Upload" )
 
 ## Add helper functions ----
 ## Creates fct_* and utils_*

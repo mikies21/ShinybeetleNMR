@@ -10,18 +10,15 @@
 mod_Univariate_analysis_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    fluidRow(
-      shinydashboard::box(
-        width = 6,
-        fluidRow(
-          column(
-            width = 12,
+      bs4Dash::box(
+            width = 5,
+            collapsible = F, 
+            collapsed = F, 
+            headerBorder = F,
             shiny::uiOutput(outputId = ns("args_univ"))
-          )
-        )
-      ),
-      shinydashboard::infoBoxOutput(outputId = ns("univ_information"), width = 6)
-    ),
+          ),
+      bs4Dash::infoBoxOutput(outputId = ns("univ_information"), 
+                             width = 5),
     fluidRow(
       shinydashboard::box(
         title = "table univariate",
@@ -182,10 +179,11 @@ mod_Univariate_analysis_server <- function(id, data_NMR_n, index_metadata, group
       }
     })
 
-    output$univ_information <- shinydashboard::renderInfoBox({
-      shinydashboard::infoBox(
+    output$univ_information <- bs4Dash::renderInfoBox({
+      bs4Dash::infoBox(
         title = "Type of Univariate",
-        icon = icon("chart-bar"),
+        icon = icon("chart-bar"),color = "lightblue", 
+        fill = T,
         value = HTML(paste0(
           "number of levels: ", levels_group(), br(),
           univ_test_data()$test

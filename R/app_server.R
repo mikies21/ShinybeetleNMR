@@ -23,15 +23,29 @@ app_server <- function(input, output, session) {
                          datamods::filter_data_ui(id = "filter", show_nrow = TRUE, max_height = NULL)
                          )
                        ), 
-      conditionalPanel(condition = 'input.sidebar=="PlotSpectra"', "test")
+      conditionalPanel(condition = 'input.sidebar=="PlotSpectra"', 
+                       mod_spectra_plot_RAW_Upload_ui("spectra_plot_RAW_Upload_1")
+                       )
       )
     )
   })
   
   
+  ######### Raw spectra server
+  RAW_data <- mod_spectra_plot_RAW_Upload_server("spectra_plot_RAW_Upload_1")
   
   ########## Raw spectra server
-  mod_spectra_plot_RAW_server("spectra_plot_RAW_1")
+  mod_spectra_plot_RAW_server("spectra_plot_RAW_1",
+                              upfile = reactive({
+                                RAW_data$RAW_data_original()
+                              }),
+                              pattern = reactive({
+                                RAW_data$RAW_Pattern()
+                              }),
+                              PatternCheck = reactive({
+                                RAW_data$PatternCheck()
+                              })
+                              )
   
   ## Upload the data
 

@@ -12,49 +12,6 @@ mod_spectra_plot_RAW_ui <- function(id) {
   tagList(
     shiny::fluidRow(
       shiny::column(
-        width = 3,
-        shinyWidgets::prettyRadioButtons(
-          inputId = ns("selectInputData"),
-          label = "Choose:",
-          choices = c("JAKIRAW", "upload csv", "upload Bruker zip file"),
-          icon = icon("check"),
-          bigger = TRUE,
-          status = "info",
-          animation = "jelly"
-        )
-      ),
-      shiny::column(
-        width = 6,
-        shiny::conditionalPanel(
-          condition = "input.selectInputData == 'upload csv'",
-          ns = ns,
-          shiny::fileInput(inputId = ns("fileupload"), label = "upload csv file", multiple = F)
-        )
-      )
-    ),
-    shiny::fluidRow(
-      shiny::column(
-        width = 3,
-        shinyWidgets::prettyCheckbox(
-          inputId = ns("PatternCheck"),
-          label = "add Pattern file",
-          value = F,
-          status = "primary",
-          shape = "round",
-          animation = "jelly"
-        )
-      ),
-      shiny::column(
-        width = 6,
-        shiny::conditionalPanel(
-          condition = "input.PatternCheck == 1",
-          ns = ns,
-          shiny::fileInput(inputId = ns("PatternUpload"), label = "upload csv file", multiple = F)
-        )
-      )
-    ),
-    shiny::fluidRow(
-      shiny::column(
         width = 12,
         shiny::actionButton(
           inputId = ns("add_graph"),
@@ -62,6 +19,7 @@ mod_spectra_plot_RAW_ui <- function(id) {
         )
       )
     ),
+    DT::dataTableOutput(outputId = ns("testdat")),
     shiny::fluidRow(
       column(
         width = 12,
@@ -91,53 +49,19 @@ mod_spectra_plot_RAW_ui <- function(id) {
 #' spectra_plot_RAW Server Functions
 #'
 #' @noRd
-mod_spectra_plot_RAW_server <- function(id) {
+mod_spectra_plot_RAW_server <- function(id, upfile, pattern, PatternCheck) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    selectionInput <- shiny::reactive({
-      input$selectInputData
-    })
+    ########## FILTER RAW DATA to show only range desired
 
-    upfile <- shiny::reactive({
-      if (selectionInput() == "JAKIRAW") {
-        data("raw_data")
-        return(raw_data)
-      } else if (selectionInput() == "upload csv") {
-        return(NULL)
-        file <- input$fileupload
-        ext <- tools::file_ext(file$fileupload)
-
-        req(file)
-
-        return(read.csv(file$datapath))
-      } else if (selectionInput() == "upload Bruker zip file") {
-        return(NULL)
-      }
-
-      # data_CRS
-    })
-
-    pattern <- shiny::reactive({
-      if (input$PatternCheck) {
-        data("pattern_file")
-        return(pattern_file)
-      } else {
-        return(NULL)
-      }
-    })
-
-    # output$test1 <- DT::renderDataTable({
-    #  data("raw_data")
-    #  return(raw_data)
-    #
-    # })
     filter_raw <- eventReactive(input$add_graph, {
       upfile()[upfile()$ppm >= input$RangePpm[2] & upfile()$ppm <= input$RangePpm[1], ]
     })
     
+    ######### PATTERN FILE filtering for range
     filter_pattern <- eventReactive(input$add_graph, {
-      if (!input$PatternCheck) {
+      if (!PatternCheck()) {
         return(NULL)
       } else {
         pattern()[pattern()$min_ppm >= input$RangePpm[2] & pattern()$max_ppm <= input$RangePpm[1], ]
@@ -152,6 +76,8 @@ mod_spectra_plot_RAW_server <- function(id) {
       )
     })
 
+    ########### PLOT THE RAW SPECTRA
+    
     spectra_bin_plot <- eventReactive(input$add_graph, {
       MaxPoint <- max(filter_raw_melted()$value)
       
@@ -166,7 +92,7 @@ mod_spectra_plot_RAW_server <- function(id) {
           show.legend = F
         ) 
       
-      if (input$PatternCheck) {
+      if (PatternCheck()) {
         p <- p +
           ggplot2::geom_rect(
             data = filter_pattern(),
