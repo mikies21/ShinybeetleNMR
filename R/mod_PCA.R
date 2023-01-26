@@ -36,35 +36,37 @@ mod_PCA_ui <- function(id) {
       ),
     fluidRow(
       bs4Dash::box(
-        height = "20em",
+        height = "30em",
         width = 6,
         plotOutput(outputId = ns("PCA_plot"), 
-                   height = "18em",
+                   height = "28em",
                    #click = ns("PCA_click"),
                    brush = brushOpts(
                      id = ns("PCA_brush"))
                    )
         ),
         bs4Dash::box(
-          height = "20em",
+          height = "30em",
           width = 6,
-          DT::dataTableOutput(outputId = ns("table_PC"))
+          DT::dataTableOutput(outputId = ns("table_PC"),
+                              height = "28em")
         )
       ),
     fluidRow(
       bs4Dash::box(
-        height = "20em",
+        height = "30em",
         width = 6,
         plotOutput(outputId = ns("PCA_loading_plot"),
-                   height = "18em",
+                   height = "28em",
                    brush = brushOpts(
                      id = ns("loadings_brush"))
                    )
       ),
       bs4Dash::box(
-        height = "20em",
+        height = "30em",
         width = 6,
-        DT::dataTableOutput(outputId = ns("table_loadings"))
+        DT::dataTableOutput(outputId = ns("table_loadings"),
+                            height = "28em")
       )
     ),
     fluidRow(
@@ -177,7 +179,8 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
           ) +
           ggplot2::theme(legend.title = ggplot2::element_blank())
       }
-      plot1
+      plot1 +
+        ggplot2::scale_color_manual(values = pal())
       # plotly::ggplotly(plot1, source = "pointsOfInterest")
     })
 
@@ -267,19 +270,34 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       }
     },
     rownames = F,
+    fillContainer = T,
+    #filter = 'top',
     options = list(
-      autoWidth = FALSE, scrollX = TRUE)
+      autoWidth = FALSE, scrollX = TRUE, scrollY = TRUE, searching = TRUE)
     )
     
     output$table_loadings <- DT::renderDataTable({
+      
+      
       if (is.null(input$loadings_brush)) {
-        PCA_loadings()
+        if (input$PCx == 0) {
+          PCA_loadings()[, c("metabolites", paste0("PC", input$PCy))]
+        } else {
+          PCA_loadings()[, c("metabolites",paste0("PC", input$PCx), paste0("PC", input$PCy)) ]
+        }
       } else {
-        brushedPoints(PCA_loadings(), input$loadings_brush)
+        loadings <- brushedPoints(PCA_loadings(), input$loadings_brush)
+        loadings[, c("metabolites",paste0("PC", input$PCx), paste0("PC", input$PCy))]
       }
     },
+    rownames = F,
+    fillContainer = T,
+    #filter = 'top',
+    extensions = 'FixedColumns',
     options = list(
-      autoWidth = FALSE, scrollX = TRUE)
+      autoWidth = FALSE, scrollX = TRUE, scrollY = TRUE, searching = TRUE,
+      fixedColumns = list(leftColumns = 1)
+      )
     )
     
     
