@@ -37,7 +37,7 @@ mod_PCA_ui <- function(id) {
     fluidRow(
       bs4Dash::box(
         height = "30em",
-        width = 6,
+        width = 6, 
         plotOutput(outputId = ns("PCA_plot"), 
                    height = "28em",
                    #click = ns("PCA_click"),
@@ -54,6 +54,7 @@ mod_PCA_ui <- function(id) {
       ),
     fluidRow(
       bs4Dash::box(
+        maximizable = T,
         height = "30em",
         width = 6,
         plotOutput(outputId = ns("PCA_loading_plot"),
@@ -92,11 +93,6 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    #### PERFORM PCA
-    PCA_res <- shiny::reactive({
-      PCA <- prcomp(x = data_NMR_ns()[, c(index_metadata() + 1):ncol(data_NMR_ns())], center = F, scale. = F)
-    })
-
     ## get colour palette
     pal <- shiny::reactive({
       colourCount <- length(unique(data_NMR_ns()[, grouping_var()]))
@@ -107,20 +103,26 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
         pal1 <- RColorBrewer::brewer.pal(8, "Dark2")[1:colourCount]
       }
     })
+    
+    #### PERFORM PCA
+    PCA_res <- shiny::reactive({
+      PCA <- prcomp(x = data_NMR_ns()[, c(index_metadata() + 1):ncol(data_NMR_ns())], center = F, scale. = F)
+    })
 
     ### get explained variances
     prop_var <- reactive({
       round(summary(PCA_res())$importance[2, ] * 100, digits = 3)
     })
     
+    ### GET PCA SCORES FOR PLOTTING
     PCA_scores <- reactive({
       cbind(as.data.frame(PCA_res()$x[, c(input$PCx, input$PCy)]), data_NMR_ns()[, 1:index_metadata()])
     })
 
+    ### PLOT PCA SCORES
+    
     output$PCA_plot <- renderPlot({
       prop_var <- round(summary(PCA_res())$importance[2, ] * 100, digits = 2)
-
-
       # PCA as points
       if (input$PCx != 0) {
         PCA_scores <- PCA_scores()
@@ -154,13 +156,11 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
         }
 
         plot1 <- plot1 +
-          ggplot2::theme_bw(base_size = 10) +
           ggplot2::labs(
             title = "PCA scores plot",
             x = paste0("PC", input$PCx, " (", prop_var[input$PCx], "%)", sep = ""),
             y = paste0("PC", input$PCy, " (", prop_var[input$PCy], "%)", sep = "")
-          ) +
-          ggplot2::theme(legend.title = ggplot2::element_blank())
+          ) 
       } else {
         PCA_scores <- cbind(data_NMR_ns()[, grouping_var()], as.data.frame(PCA_res()$x[, input$PCy]))
 
@@ -171,15 +171,14 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
           ggplot2::aes(x = PC, colour = grp)
         ) +
           ggplot2::geom_density() +
-          ggplot2::theme_bw(base_size = 10) +
           ggplot2::labs(
             title = "PCA density plot",
-            x = paste0("PC", input$PCx, " (", prop_var[input$PCx], "%)", sep = ""),
+            x = paste0("PC", input$PCx, " (", prop_var[input$PCy], "%)", sep = ""),
             y = "density"
-          ) +
-          ggplot2::theme(legend.title = ggplot2::element_blank())
+          ) 
       }
       plot1 +
+        ggplot2::theme_bw(base_size = 10) +
         ggplot2::scale_color_manual(values = pal())
       # plotly::ggplotly(plot1, source = "pointsOfInterest")
     })
@@ -299,7 +298,6 @@ mod_PCA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       fixedColumns = list(leftColumns = 1)
       )
     )
-    
     
   })
 }

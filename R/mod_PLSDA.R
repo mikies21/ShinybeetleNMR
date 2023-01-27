@@ -115,9 +115,10 @@ mod_PLSDA_ui <- function(id) {
         height = "30em",
         uiOutput(outputId = ns("pred_factor_UI")),
         DT::dataTableOutput(outputId = ns("prediction_table"), 
-                            height = "28em")
+                            height = "25em")
         )
-      )
+      ),
+    uiOutput(outputId = ns("predictionTabs"))
   )
 }
 
@@ -178,7 +179,9 @@ mod_PLSDA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
       if (isTRUE(input$elipses)) {
         plot1 <- plot1 + ggplot2::stat_ellipse(show.legend = F)
       }
-      plot1
+      plot1+
+        labs(title = "PLSDA score plot")+
+        ggplot2::theme_bw(base_size = 10) 
     })
     
     output$PLSDA_table <- DT::renderDataTable({
@@ -380,7 +383,19 @@ mod_PLSDA_server <- function(id, data_NMR_ns, index_metadata, grouping_var) {
     options = list(
       autoWidth = FALSE, scrollX = TRUE, scrollY = TRUE, searching = TRUE,
       pageLength = 5, 
-      lengthMenu = list(c(5, 15, -1), c('5', '10', 'All'))))
+      lengthMenu = list(c(5, 15, -1), c('5', '10', 'All')))
+    )
+    
+    output$predictionTabs <- renderUI({
+      levels <- unique(data_NMR_ns()[, grouping_var()])
+      
+      tabs <- lapply(levels, function(x){
+        tabPanel(id = x, title = x, "test")
+      })
+      
+      do.call(bs4Dash::tabBox, tabs)
+    })
+    
   })
 }
 
